@@ -1,6 +1,13 @@
 import { Box } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { TeamsContext } from "../../../context/TeamsContext";
+import { useContext } from "react";
 const Player = ({ name, id }) => {
+  const { setPlayers } = useContext(TeamsContext);
+  const deletePlayer = (id) => {
+    //set players and set locale storage
+    setPlayers((players) => players.filter((player) => player.id !== id));
+  };
   return (
     <Box
       sx={{
@@ -20,7 +27,7 @@ const Player = ({ name, id }) => {
             color: "darkred",
           },
         }}
-        onClick={() => console.log("Delete player with id: ", id)}
+        onClick={() => deletePlayer(id)}
       />
     </Box>
   );
