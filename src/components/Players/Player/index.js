@@ -5,7 +5,6 @@ import { useContext } from "react";
 const Player = ({ name, id }) => {
   const { setPlayers } = useContext(TeamsContext);
   const deletePlayer = (id) => {
-    //set players and set locale storage
     setPlayers((players) => players.filter((player) => player.id !== id));
   };
   return (

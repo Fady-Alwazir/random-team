@@ -1,4 +1,4 @@
-import { Modal, Button, Box, TextField, Typography } from "@mui/material";
+import { Modal, Button, Box, Typography, TextField } from "@mui/material";
 import { useContext, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 

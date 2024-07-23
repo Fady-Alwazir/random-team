@@ -13,7 +13,7 @@ const Players = () => {
       <Typography variant="h5" gutterBottom>
         Players
       </Typography>
-      {players.map((player) => (
+      {players?.map((player) => (
         <Player key={player.id} {...player} />
       ))}
       <Button
