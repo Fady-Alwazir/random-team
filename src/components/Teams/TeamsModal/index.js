@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 import TeamCard from "./teamCard";
 
-const TeamsModal = ({ open, onClose }) => {
+const TeamsModal = ({ open, onClose, showAddTeam }) => {
   const { teams } = useContext(TeamsContext);
   const style = {
     position: "absolute",
@@ -69,20 +69,21 @@ const TeamsModal = ({ open, onClose }) => {
 
         <Button
           sx={{
-            backgroundColor: "#f44336",
+            // greenish button most likely to yellow
+            background: "greenyellow",
             color: "white",
-            maxWidth: "50px",
+            maxWidth: "100px",
             "&:hover": {
-              backgroundColor: "#d32f2f",
+              background: "#b9e6b2",
             },
             position: "sticky",
             bottom: "1rem", // Adjust this value if necessary
             marginTop: "auto", // Ensures it stays at the bottom
             alignSelf: "center", // Center align the button
           }}
-          onClick={onClose}
+          onClick={showAddTeam}
         >
-          Close
+          Add Team
         </Button>
       </Box>
     </Modal>
