@@ -6,6 +6,7 @@ import AddTeamModal from "./addTeamModal";
 const Teams = () => {
   const [showTeams, setShowTeams] = useState(false);
   const [showAddTeamModal, setShowAddTeamModal] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState(0);
   // Add team functionality
 
   const showAddTeam = () => {
@@ -15,6 +16,7 @@ const Teams = () => {
   // Close team modal
   const closeTeamModal = () => {
     setShowAddTeamModal(false);
+    setSelectedTeamId(0);
   };
 
   return (
@@ -41,11 +43,13 @@ const Teams = () => {
         open={showTeams}
         onClose={() => setShowTeams(false)}
         showAddTeam={showAddTeam}
+        setSelectedTeamId={setSelectedTeamId}
       />
       <AddTeamModal
         open={showAddTeamModal}
         onClose={closeTeamModal}
         openTeamsModal={() => setShowTeams(true)}
+        selectedTeamId={selectedTeamId}
       />
     </Box>
   );

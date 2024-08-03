@@ -1,10 +1,10 @@
 import { Modal, Button, Box, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 import TeamCard from "./teamCard";
 
-const TeamsModal = ({ open, onClose, showAddTeam }) => {
+const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
   const { teams } = useContext(TeamsContext);
   const style = {
     position: "absolute",
@@ -36,6 +36,11 @@ const TeamsModal = ({ open, onClose, showAddTeam }) => {
       width: 300,
     },
   };
+  useEffect(() => {
+    // If the selected team id is not in the teams array, set it to null
+
+    setSelectedTeamId(null);
+  }, [setSelectedTeamId]); // Re-run effect if teams or selectedTeamId change
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -63,7 +68,12 @@ const TeamsModal = ({ open, onClose, showAddTeam }) => {
           }}
         >
           {teams?.map((team) => (
-            <TeamCard key={team.id} team={team} />
+            <TeamCard
+              key={team.id}
+              team={team}
+              setSelectedTeamId={setSelectedTeamId}
+              showAddTeam={showAddTeam}
+            />
           ))}
         </Box>
 
@@ -83,7 +93,7 @@ const TeamsModal = ({ open, onClose, showAddTeam }) => {
           }}
           onClick={showAddTeam}
         >
-          Add Team
+          Add New Team
         </Button>
       </Box>
     </Modal>

@@ -8,10 +8,10 @@ import {
   Rating,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 
-const AddTeamModal = ({ open, onClose }) => {
+const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
   const { teams, setTeams } = useContext(TeamsContext);
   const style = {
     position: "absolute",
@@ -50,10 +50,19 @@ const AddTeamModal = ({ open, onClose }) => {
     image: "",
   });
   const [error, setError] = useState(false);
+  useEffect(() => {
+    if (selectedTeamId) {
+      const selectedTeam = teams.find((t) => t.id === selectedTeamId);
+      if (selectedTeam) {
+        setTeam(selectedTeam);
+      }
+    } else {
+      setTeam({ name: "", ranking: 0, image: "" });
+    }
+  }, [teams, selectedTeamId, setTeam]);
 
   const handleChange = (e) => {
     setTeam({ ...team, [e.target.name]: e.target.value });
-    console.log(team);
   };
   const handleRatingChange = (e, newValue) => {
     setTeam({ ...team, ranking: newValue });
@@ -63,16 +72,25 @@ const AddTeamModal = ({ open, onClose }) => {
       setError(true);
       return;
     }
+
+    if (selectedTeamId) {
+      const updatedTeam = teams.map((t) =>
+        t.id === selectedTeamId ? { ...t, ...team } : t
+      );
+      setTeams(updatedTeam);
+    } else {
+      setTeams([
+        ...teams,
+        {
+          ...team,
+          id: new Date().getTime(),
+        },
+      ]);
+    }
     setError(false);
-    setTeams([
-      ...teams,
-      {
-        ...team,
-        id: new Date().getTime(),
-      },
-    ]);
-    setTeam({ name: "", ranking: 0, image: "" });
     onClose();
+    setTeam({ name: "", ranking: 0, image: "" });
+
     //alert from mui
   };
 
@@ -90,7 +108,7 @@ const AddTeamModal = ({ open, onClose }) => {
           <CloseIcon />
         </IconButton>
         <Typography sx={{ textAlign: "center" }} variant="h5" gutterBottom>
-          add Team
+          {selectedTeamId ? "Edit Team" : "Add Team"}
         </Typography>
         <Box
           sx={{
@@ -143,7 +161,10 @@ const AddTeamModal = ({ open, onClose }) => {
           }}
           onClick={onSubmit}
         >
-          Add Team
+          {
+            selectedTeamId ? "Update Team" : "Add Team"
+            // Alert from mui
+          }
         </Button>
 
         {error && (

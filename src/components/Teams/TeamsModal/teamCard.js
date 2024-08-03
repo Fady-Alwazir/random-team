@@ -3,13 +3,18 @@
 import { Box, Typography, Avatar, Rating } from "@mui/material";
 import { useContext } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { TeamsContext } from "../../../context/TeamsContext";
 
-const TeamCard = ({ team }) => {
+const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
   const { setTeams } = useContext(TeamsContext);
 
   const deleteTeam = (id) => {
     setTeams((teams) => teams.filter((team) => team.id !== id));
+  };
+  const onEditTeam = (id) => {
+    showAddTeam();
+    setSelectedTeamId(id);
   };
   return (
     <Box
@@ -33,16 +38,38 @@ const TeamCard = ({ team }) => {
       />
       <Typography variant="h6">{team.name}</Typography>
       <Rating value={team.ranking} readOnly />
-      <DeleteIcon
+      <Box
         sx={{
+          display: "flex",
+          justifyContent: "space-around",
+          width: "100%",
+          marginTop: "1rem",
+          gap: "0.5rem",
+          alignItems: "center",
           cursor: "pointer",
-          color: "red",
-          "&:hover": {
-            color: "darkred",
-          },
         }}
-        onClick={() => deleteTeam(team.id)}
-      />
+      >
+        <DeleteIcon
+          sx={{
+            cursor: "pointer",
+            color: "red",
+            "&:hover": {
+              color: "darkred",
+            },
+          }}
+          onClick={() => deleteTeam(team.id)}
+        />
+        <EditIcon
+          sx={{
+            cursor: "pointer",
+            color: "blue",
+            "&:hover": {
+              color: "darkblue",
+            },
+          }}
+          onClick={() => onEditTeam(team.id)}
+        />
+      </Box>
     </Box>
   );
 };
