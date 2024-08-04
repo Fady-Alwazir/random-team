@@ -82,7 +82,7 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
             // greenish button most likely to yellow
             background: "greenyellow",
             color: "white",
-            maxWidth: "100px",
+            maxWidth: "200px",
             "&:hover": {
               background: "#b9e6b2",
             },
