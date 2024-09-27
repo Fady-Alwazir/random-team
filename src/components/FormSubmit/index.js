@@ -41,7 +41,7 @@ const FormSubmit = () => {
           image: team.image,
           ranking: team.ranking,
         },
-        player1,
+        player1: player1 || null,
         player2: player2 || null,
       };
     });

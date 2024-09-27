@@ -67,14 +67,16 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
             pb: "4rem", // Ensure there's enough padding at the bottom
           }}
         >
-          {teams?.map((team) => (
-            <TeamCard
-              key={team.id}
-              team={team}
-              setSelectedTeamId={setSelectedTeamId}
-              showAddTeam={showAddTeam}
-            />
-          ))}
+          {teams
+            ?.sort((a, b) => b.ranking - a.ranking)
+            .map((team) => (
+              <TeamCard
+                key={team.id}
+                team={team}
+                setSelectedTeamId={setSelectedTeamId}
+                showAddTeam={showAddTeam}
+              />
+            ))}
         </Box>
 
         <Button
