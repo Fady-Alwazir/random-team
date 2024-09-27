@@ -1,5 +1,5 @@
 import { Box, InputLabel, MenuItem, Select } from "@mui/material";
-import { useContext, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { TeamsContext } from "../../context/TeamsContext";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import Button from "@mui/material/Button";
@@ -10,7 +10,6 @@ const FormSubmit = () => {
   const [rank, setRank] = useState(5);
   const { players, teams, setSelectedTeams } = useContext(TeamsContext);
   const [randomPairs, setRandomPairs] = useState([]);
-
   const handleRankChange = (e) => {
     setRank(e.target.value);
   };
@@ -47,6 +46,14 @@ const FormSubmit = () => {
     });
     setRandomPairs(pairs.filter((pair) => pair !== null));
     setSelectedTeams(filteredTeams);
+    const screenWidth = window.innerWidth;
+
+    if (screenWidth < 600) {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   };
 
   // Styles for button (extracted for readability)
