@@ -10,6 +10,7 @@ const TeamsProvider = ({ children }) => {
 
   const [teams, setTeams] = useState(storedTeams || defaultTeams);
   const [players, setPlayers] = useState(storedPlayers || defaultPlayers);
+  const [selectedTeams, setSelectedTeams] = useState([]);
 
   useEffect(() => {
     localStorage.setItem("players", JSON.stringify(players));
@@ -20,7 +21,16 @@ const TeamsProvider = ({ children }) => {
   }, [teams]);
 
   return (
-    <TeamsContext.Provider value={{ teams, players, setTeams, setPlayers }}>
+    <TeamsContext.Provider
+      value={{
+        teams,
+        players,
+        setTeams,
+        setPlayers,
+        selectedTeams,
+        setSelectedTeams,
+      }}
+    >
       {children}
     </TeamsContext.Provider>
   );

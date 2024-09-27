@@ -1,5 +1,5 @@
 import { Container } from "@mui/material";
-import { Header, Players, Teams } from "./components";
+import { FormSubmit, Header, Players, Teams } from "./components";
 
 function App() {
   return (
@@ -7,6 +7,7 @@ function App() {
       <Header />
       <Players />
       <Teams />
+      <FormSubmit />
     </Container>
   );
 }
