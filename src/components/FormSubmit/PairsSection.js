@@ -46,11 +46,11 @@ const PairsSection = ({ randomPairs }) => {
                       alt={pair.team.name}
                       sx={{ width: 56, height: 56 }}
                     />
-                    <Typography variant="h6">{pair.team.name}</Typography>
+                    <Typography variant="p">{pair.team.name}</Typography>
 
                     {/* Players */}
                     <Typography
-                      variant="h6"
+                      variant="p"
                       sx={{
                         fontWeight: "bold",
                       }}
@@ -102,9 +102,9 @@ const PairsSection = ({ randomPairs }) => {
                       alt={pair.team.name}
                       sx={{ width: 56, height: 56 }}
                     />
-                    <Typography variant="h6">{pair.team.name}</Typography>
+                    <Typography variant="p">{pair.team.name}</Typography>
                     <Typography
-                      variant="h6"
+                      variant="p"
                       sx={{
                         fontWeight: "bold",
                       }}
@@ -141,11 +141,11 @@ const PairsSection = ({ randomPairs }) => {
                         alt={randomPairs[index + 1].team.name}
                         sx={{ width: 56, height: 56 }}
                       />
-                      <Typography variant="h6">
+                      <Typography variant="p">
                         {randomPairs[index + 1].team.name}
                       </Typography>
                       <Typography
-                        variant="h6"
+                        variant="p"
                         sx={{
                           fontWeight: "bold",
                         }}
