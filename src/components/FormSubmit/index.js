@@ -113,6 +113,10 @@ const FormSubmit = () => {
           Shuffle Pairs
         </Button>
       </Box>
+      {
+        //render empty div if randomPairs is empty with min height to keep the layout consistent
+        randomPairs.length === 0 && <div style={{ minHeight: "800px" }}></div>
+      }
       {randomPairs.length > 0 && <PairsSection randomPairs={randomPairs} />}
     </Box>
   );
