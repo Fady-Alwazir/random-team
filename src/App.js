@@ -130,6 +130,8 @@ function App() {
         sx={{
           minHeight: "100vh",
           position: "relative",
+          width: "100%",
+          overflowX: "hidden",
           background:
             mode === "dark"
               ? "linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%)"
@@ -206,6 +208,7 @@ function App() {
 
         <Container
           maxWidth="lg"
+          disableGutters
           sx={{
             position: "relative",
             zIndex: 1,
