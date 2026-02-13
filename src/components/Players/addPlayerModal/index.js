@@ -6,6 +6,8 @@ import {
   TextField,
   Alert,
   IconButton,
+  Backdrop,
+  Paper,
 } from "@mui/material";
 import { useContext, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
@@ -25,14 +27,16 @@ const AddPlayerModal = ({ open, handleClose }) => {
     width: "100%",
     maxWidth: 450,
     bgcolor: "background.paper",
-    borderRadius: "1rem",
-    boxShadow: 24,
+    borderRadius: "1.5rem",
+    boxShadow: "0 20px 60px rgba(99, 102, 241, 0.2)",
     p: { xs: 3, sm: 4 },
     display: "flex",
     flexDirection: "column",
-    gap: 2,
+    gap: 2.5,
     maxHeight: "90vh",
     overflowY: "auto",
+    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(99, 102, 241, 0.03) 100%)",
+    border: "1px solid rgba(99, 102, 241, 0.1)",
   };
 
   const handleInputChange = (e) => {
@@ -83,6 +87,11 @@ const AddPlayerModal = ({ open, handleClose }) => {
       open={open} 
       onClose={handleClose}
       closeAfterTransition
+      BackdropComponent={Backdrop}
+      BackdropProps={{
+        timeout: 500,
+        sx: { backdropFilter: "blur(4px)" }
+      }}
     >
       <Box sx={style}>
         <Box
@@ -92,26 +101,45 @@ const AddPlayerModal = ({ open, handleClose }) => {
             alignItems: "center",
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Add New Player
-          </Typography>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+              ➕ Add New Player
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              Build your team roster
+            </Typography>
+          </Box>
           <IconButton
             onClick={handleClose}
             size="small"
             sx={{
               color: "text.secondary",
+              backgroundColor: "rgba(99, 102, 241, 0.05)",
               "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.05)",
+                backgroundColor: "rgba(99, 102, 241, 0.1)",
+                transform: "rotate(90deg)",
               },
+              transition: "all 0.3s ease",
             }}
           >
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <Alert severity="info" sx={{ borderRadius: "0.5rem" }}>
+        <Alert 
+          severity="info" 
+          sx={{ 
+            borderRadius: "0.75rem",
+            background: "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)",
+            border: "1px solid rgba(99, 102, 241, 0.2)",
+            color: "text.primary",
+            "& .MuiAlert-icon": {
+              color: "primary.main",
+            }
+          }}
+        >
           <Typography variant="body2">
-            💡 <strong>Tip:</strong> Separate multiple players with a comma (e.g., "John, Sarah, Mike")
+            <strong>💡 Tip:</strong> Add one player or multiple at once! Separate names with a comma
           </Typography>
         </Alert>
 
@@ -123,22 +151,41 @@ const AddPlayerModal = ({ open, handleClose }) => {
           value={Array.isArray(player) ? player.join(", ") : player}
           onChange={(e) => handleInputChange(e)}
           onKeyPress={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
               handleAddPlayer();
             }
           }}
           error={error}
           multiline
           minRows={2}
+          maxRows={4}
           sx={{
             "& .MuiOutlinedInput-root": {
-              borderRadius: "0.5rem",
+              borderRadius: "0.75rem",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.1)",
+              },
+              "&.Mui-focused": {
+                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.15)",
+              }
             },
+            "& .MuiOutlinedInput-input": {
+              fontWeight: 500,
+            }
           }}
         />
 
         {error && (
-          <Alert severity="error" sx={{ borderRadius: "0.5rem" }}>
+          <Alert 
+            severity="error" 
+            sx={{ 
+              borderRadius: "0.75rem",
+              background: "rgba(239, 68, 68, 0.08)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+            }}
+          >
             <Typography variant="body2">
               Please enter a valid player name
             </Typography>
@@ -150,14 +197,22 @@ const AddPlayerModal = ({ open, handleClose }) => {
             display: "flex",
             gap: 1.5,
             justifyContent: "flex-end",
-            mt: 2,
+            mt: 1,
           }}
         >
           <Button
             variant="outlined"
             color="inherit"
             onClick={handleClose}
-            sx={{ borderRadius: "0.5rem" }}
+            sx={{ 
+              borderRadius: "0.75rem",
+              border: "1.5px solid rgba(99, 102, 241, 0.2)",
+              fontWeight: 600,
+              "&:hover": {
+                border: "1.5px solid rgba(99, 102, 241, 0.4)",
+                backgroundColor: "rgba(99, 102, 241, 0.05)",
+              }
+            }}
           >
             Cancel
           </Button>
@@ -167,7 +222,14 @@ const AddPlayerModal = ({ open, handleClose }) => {
             startIcon={<PersonAddIcon />}
             onClick={handleAddPlayer}
             sx={{
-              borderRadius: "0.5rem",
+              borderRadius: "0.75rem",
+              fontWeight: 700,
+              boxShadow: "0 4px 15px rgba(99, 102, 241, 0.3)",
+              "&:hover": {
+                boxShadow: "0 6px 20px rgba(99, 102, 241, 0.4)",
+                transform: "translateY(-2px)",
+              },
+              transition: "all 0.3s ease",
             }}
           >
             Add Player
