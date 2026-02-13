@@ -7,7 +7,6 @@ import {
   Alert,
   IconButton,
   Backdrop,
-  Paper,
 } from "@mui/material";
 import { useContext, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";

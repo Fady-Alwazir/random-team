@@ -1,4 +1,4 @@
-import { Box, Typography, IconButton, Chip, Fade } from "@mui/material";
+import { Box, Typography, IconButton, Fade } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { TeamsContext } from "../../../context/TeamsContext";

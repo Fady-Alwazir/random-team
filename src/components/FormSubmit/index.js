@@ -8,7 +8,6 @@ import {
   FormControl,
   Fade,
   Divider,
-  Stack,
 } from "@mui/material";
 import React, { useContext, useState } from "react";
 import { TeamsContext } from "../../context/TeamsContext";
