@@ -88,14 +88,14 @@ const FormSubmit = () => {
       >
         <CardContent
           sx={{
-            p: { xs: 2.5, sm: 3, md: 4 },
+            p: { xs: 2, sm: 3, md: 4 },
           }}
         >
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}>
               ⚡ Generate Random Pairs
             </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontSize: { xs: "0.75rem", sm: "0.8rem" } }}>
               Mix your players with teams and create exciting matchups
             </Typography>
           </Box>
@@ -107,9 +107,9 @@ const FormSubmit = () => {
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
               gap: 2,
-              alignItems: { xs: "flex-start", sm: "flex-end" },
+              alignItems: { xs: "stretch", sm: "flex-end" },
               mb: 3,
-              p: 2.5,
+              p: { xs: 2, sm: 2.5 },
               backgroundColor: "rgba(245, 158, 11, 0.05)",
               borderRadius: "1rem",
               border: "1.5px solid rgba(245, 158, 11, 0.2)",
@@ -120,7 +120,7 @@ const FormSubmit = () => {
               },
             }}
           >
-            <FormControl sx={{ minWidth: 200 }}>
+            <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
               <InputLabel 
                 id="rank-select-label"
                 sx={{
@@ -163,9 +163,10 @@ const FormSubmit = () => {
               disabled={isGenerating}
               sx={{
                 borderRadius: "0.75rem",
-                px: 4,
+                px: { xs: 2, sm: 4 },
                 py: 1.5,
                 fontWeight: 700,
+                width: { xs: "100%", sm: "auto" },
                 boxShadow: "0 4px 15px rgba(245, 158, 11, 0.3)",
                 "&:hover:not(:disabled)": {
                   boxShadow: "0 6px 20px rgba(245, 158, 11, 0.4)",

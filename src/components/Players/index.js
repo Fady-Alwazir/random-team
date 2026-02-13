@@ -18,7 +18,8 @@ const Players = () => {
         sx={{
           mb: { xs: 3, sm: 4, md: 5 },
           borderRadius: "1.5rem",
-          background: "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(16, 185, 129, 0.03) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(16, 185, 129, 0.03) 100%)",
           border: "2px solid rgba(99, 102, 241, 0.1)",
           boxShadow: "0 8px 24px rgba(99, 102, 241, 0.08)",
           transition: "all 0.3s ease",
@@ -27,13 +28,35 @@ const Players = () => {
           },
         }}
       >
-        <CardContent sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: "space-between",
+              alignItems: { xs: "flex-start", sm: "center" },
+              gap: 2,
+              mb: 3,
+            }}
+          >
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 800,
+                  mb: 0.5,
+                  fontSize: { xs: "1.3rem", sm: "1.5rem" },
+                }}
+              >
                 👥 Players
               </Typography>
-              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "text.secondary",
+                  fontSize: { xs: "0.75rem", sm: "0.8rem" },
+                }}
+              >
                 {players?.length || 0} of {maxPlayers} max
               </Typography>
             </Box>
@@ -46,6 +69,7 @@ const Players = () => {
                 borderRadius: "0.75rem",
                 fontWeight: 700,
                 boxShadow: "0 4px 15px rgba(99, 102, 241, 0.3)",
+                width: { xs: "100%", sm: "auto" },
                 "&:hover": {
                   boxShadow: "0 6px 20px rgba(99, 102, 241, 0.4)",
                   transform: "translateY(-2px)",
@@ -93,7 +117,9 @@ const Players = () => {
                 <Typography variant="h6" sx={{ mb: 1, opacity: 0.5 }}>
                   No players yet
                 </Typography>
-                <Typography variant="body2">Add your first player to get started!</Typography>
+                <Typography variant="body2">
+                  Add your first player to get started!
+                </Typography>
               </Box>
             )}
           </Stack>

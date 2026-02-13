@@ -35,7 +35,8 @@ const Teams = () => {
         sx={{
           mb: { xs: 3, sm: 4, md: 5 },
           borderRadius: "1.5rem",
-          background: "linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(99, 102, 241, 0.03) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(99, 102, 241, 0.03) 100%)",
           border: "2px solid rgba(16, 185, 129, 0.1)",
           boxShadow: "0 8px 24px rgba(16, 185, 129, 0.08)",
           transition: "all 0.3s ease",
@@ -46,14 +47,27 @@ const Teams = () => {
       >
         <CardContent
           sx={{
-            p: { xs: 2.5, sm: 3, md: 4 },
+            p: { xs: 2, sm: 3, md: 4 },
           }}
         >
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 800,
+                mb: 0.5,
+                fontSize: { xs: "1.3rem", sm: "1.5rem" },
+              }}
+            >
               🏆 Teams Management
             </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "text.secondary",
+                fontSize: { xs: "0.75rem", sm: "0.8rem" },
+              }}
+            >
               Create and manage your teams
             </Typography>
           </Box>
