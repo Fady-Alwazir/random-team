@@ -6,67 +6,81 @@ import {
   IconButton,
   TextField,
   Rating,
+  Alert,
+  Stack,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
 import { useContext, useEffect, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 
 const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
   const { teams, setTeams } = useContext(TeamsContext);
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 500,
-    bgcolor: "background.paper",
-    borderRadius: 4,
-    boxShadow: 24,
-    p: 4,
-    display: "flex",
-    flexDirection: "column",
-    gap: "1rem",
-    maxHeight: "80vh",
-    overflowY: "auto",
-    // Scrollbar
-    "&::-webkit-scrollbar": {
-      width: "0.4em",
-    },
-    "&::-webkit-scrollbar-track": {
-      boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
-    },
-    "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(0,0,0,.1)",
-      outline: "1px solid grey",
-    },
-    "@media (max-width: 600px)": {
-      width: 300,
-    },
-  };
-
   const [team, setTeam] = useState({
     name: "",
     ranking: 0,
     image: "",
   });
   const [error, setError] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "100%",
+    maxWidth: 500,
+    bgcolor: "background.paper",
+    borderRadius: "1rem",
+    boxShadow: 24,
+    p: { xs: 3, sm: 4 },
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    maxHeight: "90vh",
+    overflowY: "auto",
+    "&::-webkit-scrollbar": {
+      width: "0.5em",
+    },
+    "&::-webkit-scrollbar-track": {
+      backgroundColor: "rgba(0, 0, 0, 0.05)",
+      borderRadius: "1em",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      backgroundColor: "rgba(99, 102, 241, 0.3)",
+      borderRadius: "1em",
+      "&:hover": {
+        backgroundColor: "rgba(99, 102, 241, 0.5)",
+      },
+    },
+  };
+
   useEffect(() => {
     if (selectedTeamId) {
       const selectedTeam = teams.find((t) => t.id === selectedTeamId);
       if (selectedTeam) {
         setTeam(selectedTeam);
+        setPreviewImage(selectedTeam.image);
       }
     } else {
       setTeam({ name: "", ranking: 0, image: "" });
+      setPreviewImage("");
     }
-  }, [teams, selectedTeamId, setTeam]);
+  }, [teams, selectedTeamId]);
 
   const handleChange = (e) => {
-    setTeam({ ...team, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setTeam({ ...team, [name]: value });
+    if (name === "image") {
+      setPreviewImage(value);
+    }
   };
+
   const handleRatingChange = (e, newValue) => {
     setTeam({ ...team, ranking: newValue });
   };
+
   const onSubmit = () => {
     if (team.name.trim() === "") {
       setError(true);
@@ -90,88 +104,141 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
     setError(false);
     onClose();
     setTeam({ name: "", ranking: 0, image: "" });
-
-    //alert from mui
+    setPreviewImage("");
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} closeAfterTransition>
       <Box sx={style}>
-        <IconButton
-          sx={{
-            position: "absolute",
-            top: "0.5rem",
-            right: "0.5rem",
-          }}
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-        <Typography sx={{ textAlign: "center" }} variant="h5" gutterBottom>
-          {selectedTeamId ? "Edit Team" : "Add Team"}
-        </Typography>
         <Box
           sx={{
             display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            width: "100%",
-            maxWidth: "400px",
-            margin: "0 auto",
-            justifyContent: "center",
+            justifyContent: "space-between",
             alignItems: "center",
-            paddingBottom: "1rem",
           }}
         >
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            {selectedTeamId ? "✏️ Edit Team" : "➕ Add New Team"}
+          </Typography>
+          <IconButton
+            onClick={onClose}
+            size="small"
+            sx={{
+              color: "text.secondary",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.05)",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <Stack spacing={2.5}>
           <TextField
-            id="outlined-basic"
+            fullWidth
             label="Team Name"
+            placeholder="e.g., Dragons, Tigers, Phoenix"
             variant="outlined"
             name="name"
             value={team.name}
             onChange={handleChange}
+            error={error && team.name.trim() === ""}
+            helperText={error && team.name.trim() === "" ? "Team name is required" : ""}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "0.5rem",
+              },
+            }}
           />
+
           <TextField
-            id="outlined-basic"
-            label="Team image URL"
+            fullWidth
+            label="Team Image URL"
+            placeholder="https://example.com/image.png"
             variant="outlined"
             name="image"
             value={team.image}
             onChange={handleChange}
+            helperText="Paste the URL of your team's logo or image"
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "0.5rem",
+              },
+            }}
           />
-          <Rating
-            name="ranking"
-            value={team.ranking}
-            onChange={(e, newValue) => handleRatingChange(e, newValue)}
-          />
-        </Box>
+
+          {previewImage && (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 1,
+                p: 2,
+                backgroundColor: "rgba(99, 102, 241, 0.05)",
+                borderRadius: "0.75rem",
+                border: "2px dashed rgba(99, 102, 241, 0.3)",
+              }}
+            >
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                Preview
+              </Typography>
+              <Box
+                component="img"
+                src={previewImage}
+                onError={() => setPreviewImage("")}
+                alt="Team preview"
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "3px solid white",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+            </Box>
+          )}
+
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+              Team Rating ⭐
+            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <Rating
+                name="ranking"
+                value={team.ranking}
+                onChange={(e, newValue) => handleRatingChange(e, newValue)}
+                size="large"
+              />
+            </Box>
+          </Box>
+
+          {error && team.name.trim() === "" && (
+            <Alert severity="error" sx={{ borderRadius: "0.5rem" }}>
+              <Typography variant="body2">
+                Please enter a valid team name
+              </Typography>
+            </Alert>
+          )}
+        </Stack>
 
         <Button
-          sx={{
-            backgroundColor: "green",
-            color: "white",
-            maxWidth: "200px",
-            "&:hover": {
-              backgroundColor: "#4caf50",
-            },
-            position: "sticky",
-            bottom: "1rem", // Adjust this value if necessary
-            marginTop: "auto", // Ensures it stays at the bottom
-            alignSelf: "center", // Center align the button
-          }}
+          fullWidth
+          variant="contained"
+          color="secondary"
+          startIcon={<SaveIcon />}
           onClick={onSubmit}
+          sx={{
+            borderRadius: "0.5rem",
+            py: 1.25,
+            fontWeight: 600,
+            mt: 2,
+          }}
         >
-          {
-            selectedTeamId ? "Update Team" : "Add Team"
-            // Alert from mui
-          }
+          {selectedTeamId ? "Update Team" : "Add Team"}
         </Button>
-
-        {error && (
-          <Typography variant="p" color="red" gutterBottom>
-            Please enter a valid team name and valid rating
-          </Typography>
-        )}
       </Box>
     </Modal>
   );

@@ -1,99 +1,126 @@
-import { Modal, Button, Box, Typography, IconButton } from "@mui/material";
+import { Modal, Button, Box, Typography, IconButton, Alert } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
 import { useContext, useEffect } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 import TeamCard from "./teamCard";
 
 const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
   const { teams } = useContext(TeamsContext);
+  
   const style = {
     position: "absolute",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    width: 900,
+    width: "100%",
+    maxWidth: 1000,
+    maxHeight: "90vh",
     bgcolor: "background.paper",
-    borderRadius: 4,
+    borderRadius: "1rem",
     boxShadow: 24,
-    p: 4,
+    p: { xs: 2, sm: 3, md: 4 },
     display: "flex",
     flexDirection: "column",
-    gap: "1rem",
-    maxHeight: "80vh",
+    gap: 2,
     overflowY: "auto",
-    // Scrollbar
     "&::-webkit-scrollbar": {
-      width: "0.4em",
+      width: "0.5em",
     },
     "&::-webkit-scrollbar-track": {
-      boxShadow: "inset 0 0 6px rgba(0,0,0,0.00)",
+      backgroundColor: "rgba(0, 0, 0, 0.05)",
+      borderRadius: "1em",
     },
     "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(0,0,0,.1)",
-      outline: "1px solid grey",
-    },
-    "@media (max-width: 600px)": {
-      width: 300,
+      backgroundColor: "rgba(99, 102, 241, 0.3)",
+      borderRadius: "1em",
+      "&:hover": {
+        backgroundColor: "rgba(99, 102, 241, 0.5)",
+      },
     },
   };
-  useEffect(() => {
-    // If the selected team id is not in the teams array, set it to null
 
+  useEffect(() => {
     setSelectedTeamId(null);
-  }, [setSelectedTeamId]); // Re-run effect if teams or selectedTeamId change
+  }, [setSelectedTeamId]);
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} closeAfterTransition>
       <Box sx={style}>
-        <IconButton
-          sx={{
-            position: "absolute",
-            top: "0.5rem",
-            right: "0.5rem",
-          }}
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-        <Typography sx={{ textAlign: "center" }} variant="h5" gutterBottom>
-          Teams
-        </Typography>
-
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: "1rem",
-            pb: "4rem", // Ensure there's enough padding at the bottom
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
           }}
         >
-          {teams
-            ?.sort((a, b) => b.ranking - a.ranking)
-            .map((team) => (
-              <TeamCard
-                key={team.id}
-                team={team}
-                setSelectedTeamId={setSelectedTeamId}
-                showAddTeam={showAddTeam}
-              />
-            ))}
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            🏆 All Teams
+          </Typography>
+          <IconButton
+            onClick={onClose}
+            size="small"
+            sx={{
+              color: "text.secondary",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.05)",
+              },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
         </Box>
 
+        <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+          {teams?.length === 0
+            ? "No teams added yet. Create one to get started!"
+            : `Showing ${teams?.length} team${teams?.length !== 1 ? "s" : ""}`}
+        </Typography>
+
+        {teams?.length > 0 ? (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(auto-fill, minmax(160px, 1fr))",
+                sm: "repeat(auto-fill, minmax(200px, 1fr))",
+                md: "repeat(auto-fill, minmax(220px, 1fr))",
+              },
+              gap: 2,
+              mb: 3,
+            }}
+          >
+            {teams
+              ?.sort((a, b) => b.ranking - a.ranking)
+              .map((team) => (
+                <TeamCard
+                  key={team.id}
+                  team={team}
+                  setSelectedTeamId={setSelectedTeamId}
+                  showAddTeam={showAddTeam}
+                />
+              ))}
+          </Box>
+        ) : (
+          <Alert severity="info" sx={{ borderRadius: "0.5rem", mb: 2 }}>
+            <Typography variant="body2">
+              Create your first team to start building team pairs!
+            </Typography>
+          </Alert>
+        )}
+
         <Button
-          sx={{
-            // greenish button most likely to yellow
-            background: "greenyellow",
-            color: "white",
-            maxWidth: "200px",
-            "&:hover": {
-              background: "#b9e6b2",
-            },
-            position: "sticky",
-            bottom: "1rem", // Adjust this value if necessary
-            marginTop: "auto", // Ensures it stays at the bottom
-            alignSelf: "center", // Center align the button
-          }}
+          variant="contained"
+          color="secondary"
+          startIcon={<AddIcon />}
           onClick={showAddTeam}
+          fullWidth
+          sx={{
+            borderRadius: "0.5rem",
+            py: 1.25,
+            fontWeight: 600,
+          }}
         >
           Add New Team
         </Button>

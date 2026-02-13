@@ -5,165 +5,196 @@ import {
   Typography,
   Avatar,
   Grid,
+  Chip,
 } from "@mui/material";
 
 const PairsSection = ({ randomPairs }) => {
   const isOdd = randomPairs.length % 2 !== 0;
 
+  const TeamCard = ({ pair }) => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 1.5,
+        p: 2,
+        borderRadius: "0.75rem",
+        background:
+          "linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%)",
+        border: "2px solid rgba(99, 102, 241, 0.2)",
+        transition: "all 0.3s ease",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          borderColor: "primary.light",
+          boxShadow: "0 8px 20px rgba(99, 102, 241, 0.15)",
+        },
+      }}
+    >
+      <Avatar
+        src={pair.team.image}
+        alt={pair.team.name}
+        sx={{
+          width: 80,
+          height: 80,
+          border: "3px solid white",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+        }}
+      />
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 700,
+          textAlign: "center",
+          color: "primary.main",
+        }}
+      >
+        {pair.team.name}
+      </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        {pair.player1 && (
+          <Chip
+            label={pair.player1.name}
+            color="primary"
+            variant="outlined"
+            sx={{ fontWeight: 500 }}
+          />
+        )}
+        {pair.player2 && (
+          <Chip
+            label={pair.player2.name}
+            color="secondary"
+            variant="outlined"
+            sx={{ fontWeight: 500 }}
+          />
+        )}
+      </Box>
+
+      {!pair.player1 && !pair.player2 && (
+        <Typography
+          variant="caption"
+          sx={{
+            color: "text.secondary",
+            fontStyle: "italic",
+          }}
+        >
+          No players assigned
+        </Typography>
+      )}
+    </Box>
+  );
+
   return (
-    <Grid container spacing={3}>
-      {randomPairs.map((pair, index) => {
-        // If it's the last team and the total number of teams is odd, display the team alone
-        if (isOdd && index === randomPairs.length - 1) {
-          return (
-            <Grid item xs={12} key={index}>
-              <Card
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  padding: "1rem",
-                }}
-              >
-                <CardContent
-                  sx={{ display: "flex", alignItems: "center", gap: "2rem" }}
-                >
-                  {/* Team */}
-                  <Box
-                    sx={{
-                      textAlign: "center",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "1rem",
-                      padding: "1rem",
-                      borderRadius: "5px",
-                      boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
-                    }}
-                  >
-                    <Avatar
-                      src={pair.team.image}
-                      alt={pair.team.name}
-                      sx={{ width: 56, height: 56 }}
-                    />
-                    <Typography variant="p">{pair.team.name}</Typography>
+    <Box sx={{ mt: 4 }}>
+      <Typography
+        variant="h6"
+        sx={{
+          mb: 3,
+          fontWeight: 700,
+          color: "primary.main",
+        }}
+      >
+        🎮 Generated Matchups ({randomPairs.length}{" "}
+        {randomPairs.length === 1 ? "team" : "teams"})
+      </Typography>
 
-                    {/* Players */}
-                    <Typography
-                      variant="p"
-                      sx={{
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {pair.player1?.name || "No Player"}{" "}
-                      {`& ${pair.player2?.name}` || null}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        }
-
-        // Display two teams facing off (normal case)
-        if (index % 2 === 0) {
-          return (
-            <Grid item xs={12} key={index}>
-              <Card
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  padding: "1rem",
-                }}
-              >
-                <CardContent
+      <Grid container spacing={3}>
+        {randomPairs.map((pair, index) => {
+          // If it's the last team and the total number of teams is odd, display the team alone
+          if (isOdd && index === randomPairs.length - 1) {
+            return (
+              <Grid item xs={12} key={index}>
+                <Card
                   sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: "2rem",
-                    justifyContent: "center",
+                    borderRadius: "1rem",
                   }}
                 >
-                  {/* First Team */}
-                  <Box
+                  <CardContent
                     sx={{
-                      textAlign: "center",
                       display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "1rem",
-                      padding: "1rem",
-                      borderRadius: "5px",
-                      boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+                      justifyContent: "center",
+                      p: 3,
                     }}
                   >
-                    <Avatar
-                      src={pair.team.image}
-                      alt={pair.team.name}
-                      sx={{ width: 56, height: 56 }}
-                    />
-                    <Typography variant="p">{pair.team.name}</Typography>
-                    <Typography
-                      variant="p"
-                      sx={{
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {pair.player1?.name || "No Player"}
-                      {" & "}
-                      {pair.player2?.name || "No Player"}
-                    </Typography>
-                  </Box>
+                    <Box sx={{ maxWidth: "300px", width: "100%" }}>
+                      <TeamCard pair={pair} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          }
 
-                  {/* VS */}
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-                      VS
-                    </Typography>
-                  </Box>
+          // Display two teams facing off (normal case)
+          if (index % 2 === 0) {
+            return (
+              <Grid item xs={12} key={index}>
+                <Card
+                  sx={{
+                    borderRadius: "1rem",
+                  }}
+                >
+                  <CardContent
+                    sx={{
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: { xs: 2, sm: 3 },
+                      p: 3,
+                    }}
+                  >
+                    {/* First Team */}
+                    <Box sx={{ flex: 1, maxWidth: "300px" }}>
+                      <TeamCard pair={pair} />
+                    </Box>
 
-                  {/* Second Team (next pair) */}
-                  {index + 1 < randomPairs.length && (
+                    {/* VS Badge */}
                     <Box
                       sx={{
-                        textAlign: "center",
                         display: "flex",
-                        flexDirection: "column",
                         alignItems: "center",
-                        gap: "1rem",
-                        padding: "1rem",
-                        borderRadius: "5px",
-                        boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+                        justifyContent: "center",
+                        px: 2,
+                        py: 1,
                       }}
                     >
-                      <Avatar
-                        src={randomPairs[index + 1].team.image}
-                        alt={randomPairs[index + 1].team.name}
-                        sx={{ width: 56, height: 56 }}
-                      />
-                      <Typography variant="p">
-                        {randomPairs[index + 1].team.name}
-                      </Typography>
                       <Typography
-                        variant="p"
+                        variant="h5"
                         sx={{
-                          fontWeight: "bold",
+                          fontWeight: 800,
+                          color: "primary.main",
+                          textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                         }}
                       >
-                        {randomPairs[index + 1].player1?.name || "No Player"}
-                        {" & "}{" "}
-                        {randomPairs[index + 1].player2?.name || "No Player"}
+                        ⚔️
                       </Typography>
                     </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        }
-        return null; // Skip rendering of the second team in the pair, it's handled in the previous iteration
-      })}
-    </Grid>
+
+                    {/* Second Team (next pair) */}
+                    {index + 1 < randomPairs.length && (
+                      <Box sx={{ flex: 1, maxWidth: "300px" }}>
+                        <TeamCard pair={randomPairs[index + 1]} />
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            );
+          }
+
+          return null;
+        })}
+      </Grid>
+    </Box>
   );
 };
 
