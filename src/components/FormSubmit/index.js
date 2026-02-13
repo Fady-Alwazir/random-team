@@ -77,7 +77,8 @@ const FormSubmit = () => {
         sx={{
           mb: { xs: 3, sm: 4, md: 5 },
           borderRadius: "1.5rem",
-          background: "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)",
           border: "2px solid rgba(245, 158, 11, 0.1)",
           boxShadow: "0 8px 24px rgba(245, 158, 11, 0.08)",
           transition: "all 0.3s ease",
@@ -92,10 +93,23 @@ const FormSubmit = () => {
           }}
         >
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: "1.3rem", sm: "1.5rem" } }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 800,
+                mb: 0.5,
+                fontSize: { xs: "1.3rem", sm: "1.5rem" },
+              }}
+            >
               ⚡ Generate Random Pairs
             </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary", fontSize: { xs: "0.75rem", sm: "0.8rem" } }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "text.secondary",
+                fontSize: { xs: "0.75rem", sm: "0.8rem" },
+              }}
+            >
               Mix your players with teams and create exciting matchups
             </Typography>
           </Box>
@@ -121,7 +135,7 @@ const FormSubmit = () => {
             }}
           >
             <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
-              <InputLabel 
+              <InputLabel
                 id="rank-select-label"
                 sx={{
                   fontWeight: 600,
@@ -141,7 +155,7 @@ const FormSubmit = () => {
                   fontWeight: 600,
                   "& .MuiOutlinedInput-root:hover": {
                     boxShadow: "0 2px 8px rgba(245, 158, 11, 0.1)",
-                  }
+                  },
                 }}
               >
                 <MenuItem value={5}>⭐⭐⭐⭐⭐ (5 Stars)</MenuItem>
@@ -175,7 +189,7 @@ const FormSubmit = () => {
                 transition: "all 0.3s ease",
                 "&:disabled": {
                   opacity: 0.7,
-                }
+                },
               }}
             >
               {isGenerating ? "Shuffling..." : "Generate Pairs"}
@@ -195,7 +209,8 @@ const FormSubmit = () => {
                   🎯 No pairs generated yet
                 </Typography>
                 <Typography variant="body2">
-                  Select a rank and click "Generate Pairs" to create exciting random matchups
+                  Select a rank and click "Generate Pairs" to create exciting
+                  random matchups
                 </Typography>
               </Box>
             </Fade>
