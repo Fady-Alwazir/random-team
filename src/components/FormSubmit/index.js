@@ -20,7 +20,8 @@ import ElectricBoltIcon from "@mui/icons-material/ElectricBolt";
 
 const FormSubmit = () => {
   const [rank, setRank] = useState(5);
-  const { players, teams, setSelectedTeams } = useContext(TeamsContext);
+  const { players, teams, setTeams, setSelectedTeams } =
+    useContext(TeamsContext);
   const [randomPairs, setRandomPairs] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -28,17 +29,59 @@ const FormSubmit = () => {
     setRank(e.target.value);
   };
 
-  const handleShuffle = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      let filteredTeams;
-      if (rank === "all") {
-        filteredTeams = teams;
-      } else {
-        filteredTeams = teams.filter((team) => team.ranking === rank);
-      }
+  // Function to fetch real football team logos from TheSportsDB API
+  const updateTeamImages = async (teamsToUpdate) => {
+    const updatedTeams = await Promise.all(
+      teamsToUpdate.map(async (team) => {
+        try {
+          // Search for real team logo using TheSportsDB API
+          const teamName = encodeURIComponent(team.name);
+          const response = await fetch(
+            `https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${teamName}`,
+          );
+          const data = await response.json();
 
-      const shuffledTeams = shuffle(filteredTeams);
+          // Get the team badge/logo from the first result
+          if (data.teams && data.teams.length > 0) {
+            const teamData = data.teams[0];
+            const newImage =
+              teamData.strBadge || teamData.strTeamBadge || team.image;
+            return { ...team, image: newImage };
+          }
+
+          // Fallback to original image if team not found
+          return team;
+        } catch (error) {
+          console.error("Failed to fetch team logo:", error);
+          return team; // Return original team if fetch fails
+        }
+      }),
+    );
+    return updatedTeams;
+  };
+
+  const handleShuffle = async () => {
+    setIsGenerating(true);
+
+    let filteredTeams;
+    if (rank === "all") {
+      filteredTeams = teams;
+    } else {
+      filteredTeams = teams.filter((team) => team.ranking === rank);
+    }
+
+    // Update team images with fresh ones from API
+    const teamsWithNewImages = await updateTeamImages(filteredTeams);
+
+    // Update the teams in context/localStorage
+    const updatedAllTeams = teams.map((team) => {
+      const updatedTeam = teamsWithNewImages.find((t) => t.id === team.id);
+      return updatedTeam || team;
+    });
+    setTeams(updatedAllTeams);
+
+    setTimeout(() => {
+      const shuffledTeams = shuffle(teamsWithNewImages);
       const shuffledPlayers = shuffle(players);
 
       const pairs = shuffledTeams.map((team, index) => {
@@ -58,7 +101,7 @@ const FormSubmit = () => {
       });
 
       setRandomPairs(pairs.filter((pair) => pair !== null));
-      setSelectedTeams(filteredTeams);
+      setSelectedTeams(teamsWithNewImages);
       setIsGenerating(false);
 
       const screenWidth = window.innerWidth;
@@ -221,6 +264,6 @@ const FormSubmit = () => {
       </Card>
     </Fade>
   );
-};
+};;;
 
 export default FormSubmit;
