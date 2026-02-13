@@ -9,13 +9,19 @@ import {
   Divider,
   Fade,
   Stack,
+  Skeleton,
 } from "@mui/material";
 
-const PairsSection = ({ randomPairs }) => {
+const PairsSection = ({
+  randomPairs,
+  disableAnimation = false,
+  isGenerating = false,
+}) => {
   const isOdd = randomPairs.length % 2 !== 0;
+  const skeletonCount = Math.max(randomPairs.length || 4, 4);
 
-  const TeamCard = ({ pair, index }) => (
-    <Fade in={true} timeout={300 + index * 100}>
+  const TeamCard = ({ pair, index }) => {
+    const content = (
       <Box
         sx={{
           display: "flex",
@@ -37,7 +43,8 @@ const PairsSection = ({ randomPairs }) => {
             left: "-100%",
             width: "100%",
             height: "100%",
-            background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)",
+            background:
+              "linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)",
             transition: "left 0.6s ease",
           },
           "&:hover": {
@@ -49,7 +56,7 @@ const PairsSection = ({ randomPairs }) => {
             },
             "& .team-name": {
               color: "primary.main",
-            }
+            },
           },
         }}
       >
@@ -125,8 +132,18 @@ const PairsSection = ({ randomPairs }) => {
           </Typography>
         )}
       </Box>
-    </Fade>
-  );
+    );
+
+    if (disableAnimation) {
+      return content;
+    }
+
+    return (
+      <Fade in={true} timeout={300 + index * 100}>
+        {content}
+      </Fade>
+    );
+  };
 
   return (
     <Box sx={{ mt: 5 }}>
@@ -151,58 +168,25 @@ const PairsSection = ({ randomPairs }) => {
             fontWeight: 600,
           }}
         >
-          {randomPairs.length} {randomPairs.length === 1 ? "team" : "teams"} ready to battle
+          {isGenerating
+            ? "Refreshing matchups..."
+            : `${randomPairs.length} ${
+                randomPairs.length === 1 ? "team" : "teams"
+              } ready to battle`}
         </Typography>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        {randomPairs.map((pair, index) => {
-          // If it's the last team and the total number of teams is odd, display the team alone
-          if (isOdd && index === randomPairs.length - 1) {
-            return (
-              <Grid item xs={12} key={index}>
+        {isGenerating
+          ? Array.from({ length: skeletonCount }).map((_, index) => (
+              <Grid item xs={12} key={`skeleton-${index}`}>
                 <Card
                   sx={{
                     borderRadius: "1.5rem",
                     border: "2px solid rgba(99, 102, 241, 0.15)",
-                    background: "linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%)",
+                    background:
+                      "linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%)",
                     boxShadow: "0 4px 15px rgba(99, 102, 241, 0.08)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      boxShadow: "0 8px 25px rgba(99, 102, 241, 0.12)",
-                    }
-                  }}
-                >
-                  <CardContent
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      p: 4,
-                    }}
-                  >
-                    <Box sx={{ maxWidth: "320px", width: "100%" }}>
-                      <TeamCard pair={pair} index={index} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          }
-
-          // Display two teams facing off (normal case)
-          if (index % 2 === 0) {
-            return (
-              <Grid item xs={12} key={index}>
-                <Card
-                  sx={{
-                    borderRadius: "1.5rem",
-                    border: "2px solid rgba(99, 102, 241, 0.15)",
-                    background: "linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%)",
-                    boxShadow: "0 4px 15px rgba(99, 102, 241, 0.08)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      boxShadow: "0 8px 25px rgba(99, 102, 241, 0.12)",
-                    }
                   }}
                 >
                   <CardContent
@@ -215,52 +199,140 @@ const PairsSection = ({ randomPairs }) => {
                       p: { xs: 2.5, sm: 4 },
                     }}
                   >
-                    {/* First Team */}
                     <Box sx={{ flex: 1, maxWidth: "320px", width: "100%" }}>
-                      <TeamCard pair={pair} index={index} />
-                    </Box>
-
-                    {/* VS Badge */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        px: 2,
-                        py: { xs: 1, sm: 2 },
-                        gap: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="h4"
+                      <Box
                         sx={{
-                          fontWeight: 900,
-                          background: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
-                          backgroundClip: "text",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 2,
+                          p: 2.5,
+                          borderRadius: "1.25rem",
+                          background:
+                            "linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)",
+                          border: "2px solid rgba(99, 102, 241, 0.3)",
                         }}
                       >
-                        ⚔️
-                      </Typography>
-                    </Box>
-
-                    {/* Second Team (next pair) */}
-                    {index + 1 < randomPairs.length && (
-                      <Box sx={{ flex: 1, maxWidth: "320px", width: "100%" }}>
-                        <TeamCard pair={randomPairs[index + 1]} index={index + 1} />
+                        <Skeleton variant="circular" width={90} height={90} />
+                        <Skeleton variant="text" width="70%" height={28} />
+                        <Skeleton variant="text" width="50%" height={20} />
+                        <Skeleton variant="rounded" width="80%" height={32} />
+                        <Skeleton variant="rounded" width="75%" height={32} />
                       </Box>
-                    )}
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
-            );
-          }
+            ))
+          : randomPairs.map((pair, index) => {
+              if (isOdd && index === randomPairs.length - 1) {
+                return (
+                  <Grid item xs={12} key={index}>
+                    <Card
+                      sx={{
+                        borderRadius: "1.5rem",
+                        border: "2px solid rgba(99, 102, 241, 0.15)",
+                        background:
+                          "linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%)",
+                        boxShadow: "0 4px 15px rgba(99, 102, 241, 0.08)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          boxShadow: "0 8px 25px rgba(99, 102, 241, 0.12)",
+                        },
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          p: 4,
+                        }}
+                      >
+                        <Box sx={{ maxWidth: "320px", width: "100%" }}>
+                          <TeamCard pair={pair} index={index} />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              }
 
-          return null;
-        })}
+              if (index % 2 === 0) {
+                return (
+                  <Grid item xs={12} key={index}>
+                    <Card
+                      sx={{
+                        borderRadius: "1.5rem",
+                        border: "2px solid rgba(99, 102, 241, 0.15)",
+                        background:
+                          "linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(16, 185, 129, 0.02) 100%)",
+                        boxShadow: "0 4px 15px rgba(99, 102, 241, 0.08)",
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          boxShadow: "0 8px 25px rgba(99, 102, 241, 0.12)",
+                        },
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          display: "flex",
+                          flexDirection: { xs: "column", sm: "row" },
+                          justifyContent: "center",
+                          alignItems: "center",
+                          gap: { xs: 2.5, sm: 4 },
+                          p: { xs: 2.5, sm: 4 },
+                        }}
+                      >
+                        <Box sx={{ flex: 1, maxWidth: "320px", width: "100%" }}>
+                          <TeamCard pair={pair} index={index} />
+                        </Box>
+
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            px: 2,
+                            py: { xs: 1, sm: 2 },
+                            gap: 1,
+                          }}
+                        >
+                          <Typography
+                            variant="h4"
+                            sx={{
+                              fontWeight: 900,
+                              background:
+                                "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
+                              backgroundClip: "text",
+                              WebkitBackgroundClip: "text",
+                              WebkitTextFillColor: "transparent",
+                              filter:
+                                "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))",
+                            }}
+                          >
+                            ⚔️
+                          </Typography>
+                        </Box>
+
+                        {index + 1 < randomPairs.length && (
+                          <Box
+                            sx={{ flex: 1, maxWidth: "320px", width: "100%" }}
+                          >
+                            <TeamCard
+                              pair={randomPairs[index + 1]}
+                              index={index + 1}
+                            />
+                          </Box>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              }
+
+              return null;
+            })}
       </Grid>
     </Box>
   );

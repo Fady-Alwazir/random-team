@@ -7,7 +7,6 @@ import {
   CardContent,
   FormControl,
   Fade,
-  Divider,
 } from "@mui/material";
 import React, { useContext, useState } from "react";
 import { TeamsContext } from "../../context/TeamsContext";
@@ -16,47 +15,87 @@ import Button from "@mui/material/Button";
 import PairsSection from "./PairsSection";
 import { shuffle } from "../../functions";
 import Typography from "@mui/material/Typography";
-import ElectricBoltIcon from "@mui/icons-material/ElectricBolt";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
-const FormSubmit = () => {
+const FormSubmit = ({ mode }) => {
   const [rank, setRank] = useState(5);
-  const { players, teams, setTeams, setSelectedTeams } =
-    useContext(TeamsContext);
+  const { players, teams, setSelectedTeams } = useContext(TeamsContext);
   const [randomPairs, setRandomPairs] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasPairs, setHasPairs] = useState(false);
 
   const handleRankChange = (e) => {
     setRank(e.target.value);
   };
 
-  // Function to fetch real football team logos from TheSportsDB API
+  const imageCacheKey = "teamImageCache";
+
+  const getImageCache = () => {
+    try {
+      const cache = JSON.parse(localStorage.getItem(imageCacheKey));
+      return cache && typeof cache === "object" ? cache : {};
+    } catch (error) {
+      return {};
+    }
+  };
+
+  const saveImageCache = (cache) => {
+    localStorage.setItem(imageCacheKey, JSON.stringify(cache));
+  };
+
+  // Fetch real football team logos from TheSportsDB API only when needed
   const updateTeamImages = async (teamsToUpdate) => {
+    const cache = getImageCache();
+    let cacheChanged = false;
+
     const updatedTeams = await Promise.all(
       teamsToUpdate.map(async (team) => {
+        // Skip API search if user provided a custom image
+        if (team.imageSource === "custom" && team.image) {
+          return team;
+        }
+
+        // Use cached SportsDB logo if already fetched before
+        const cached = cache[team.id];
+        if (cached?.image && cached?.source === "sportsdb") {
+          return { ...team, image: cached.image, imageSource: "sportsdb" };
+        }
+
         try {
-          // Search for real team logo using TheSportsDB API
           const teamName = encodeURIComponent(team.name);
           const response = await fetch(
             `https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${teamName}`,
           );
           const data = await response.json();
 
-          // Get the team badge/logo from the first result
           if (data.teams && data.teams.length > 0) {
             const teamData = data.teams[0];
             const newImage =
               teamData.strBadge || teamData.strTeamBadge || team.image;
-            return { ...team, image: newImage };
+
+            if (newImage) {
+              cache[team.id] = {
+                image: newImage,
+                source: "sportsdb",
+                ts: Date.now(),
+              };
+              cacheChanged = true;
+              return { ...team, image: newImage, imageSource: "sportsdb" };
+            }
           }
 
-          // Fallback to original image if team not found
           return team;
         } catch (error) {
           console.error("Failed to fetch team logo:", error);
-          return team; // Return original team if fetch fails
+          return team;
         }
       }),
     );
+
+    if (cacheChanged) {
+      saveImageCache(cache);
+    }
+
     return updatedTeams;
   };
 
@@ -70,18 +109,8 @@ const FormSubmit = () => {
       filteredTeams = teams.filter((team) => team.ranking === rank);
     }
 
-    // Update team images with fresh ones from API
-    const teamsWithNewImages = await updateTeamImages(filteredTeams);
-
-    // Update the teams in context/localStorage
-    const updatedAllTeams = teams.map((team) => {
-      const updatedTeam = teamsWithNewImages.find((t) => t.id === team.id);
-      return updatedTeam || team;
-    });
-    setTeams(updatedAllTeams);
-
     setTimeout(() => {
-      const shuffledTeams = shuffle(teamsWithNewImages);
+      const shuffledTeams = shuffle(filteredTeams);
       const shuffledPlayers = shuffle(players);
 
       const pairs = shuffledTeams.map((team, index) => {
@@ -94,15 +123,45 @@ const FormSubmit = () => {
             name: team.name,
             image: team.image,
             ranking: team.ranking,
+            id: team.id,
           },
           player1: player1 || null,
           player2: player2 || null,
         };
       });
 
-      setRandomPairs(pairs.filter((pair) => pair !== null));
-      setSelectedTeams(teamsWithNewImages);
+      const filteredPairs = pairs.filter((pair) => pair !== null);
+      setRandomPairs(filteredPairs);
+      setSelectedTeams(shuffledTeams);
       setIsGenerating(false);
+      setHasPairs(true);
+
+      // Fetch images in background after displaying pairs
+      updateTeamImages(shuffledTeams).then((teamsWithNewImages) => {
+        const updatedPairs = filteredPairs.map((pair) => {
+          const updatedTeam = teamsWithNewImages.find(
+            (t) => t.id === pair.team.id,
+          );
+          if (updatedTeam && updatedTeam.image !== pair.team.image) {
+            return {
+              ...pair,
+              team: {
+                ...pair.team,
+                image: updatedTeam.image,
+                imageSource: updatedTeam.imageSource,
+              },
+            };
+          }
+          return pair;
+        });
+
+        const hasChanges = updatedPairs.some(
+          (pair, index) => pair.team.image !== filteredPairs[index]?.team.image,
+        );
+        if (hasChanges) {
+          setRandomPairs(updatedPairs);
+        }
+      });
 
       const screenWidth = window.innerWidth;
       if (screenWidth < 600) {
@@ -115,69 +174,115 @@ const FormSubmit = () => {
   };
 
   return (
-    <Fade in={true} timeout={800}>
+    <Fade in={true} timeout={1000}>
       <Card
         sx={{
-          mb: { xs: 3, sm: 4, md: 5 },
-          borderRadius: "1.5rem",
+          mb: { xs: 4, sm: 5, md: 6 },
+          borderRadius: "2rem",
           background:
-            "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)",
-          border: "2px solid rgba(245, 158, 11, 0.1)",
-          boxShadow: "0 8px 24px rgba(245, 158, 11, 0.08)",
-          transition: "all 0.3s ease",
+            mode === "dark"
+              ? "rgba(17, 17, 27, 0.7)"
+              : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(20px)",
+          border: `2px solid ${
+            mode === "dark"
+              ? "rgba(245, 158, 11, 0.2)"
+              : "rgba(245, 158, 11, 0.15)"
+          }`,
+          boxShadow:
+            mode === "dark"
+              ? "0 20px 40px rgba(245, 158, 11, 0.2)"
+              : "0 15px 35px rgba(245, 158, 11, 0.1)",
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "3px",
+            background:
+              mode === "dark"
+                ? "linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)"
+                : "linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)",
+          },
           "&:hover": {
-            boxShadow: "0 12px 36px rgba(245, 158, 11, 0.12)",
+            transform: "translateY(-4px)",
+            boxShadow:
+              mode === "dark"
+                ? "0 25px 50px rgba(245, 158, 11, 0.3)"
+                : "0 20px 40px rgba(245, 158, 11, 0.15)",
           },
         }}
       >
         <CardContent
           sx={{
-            p: { xs: 2, sm: 3, md: 4 },
+            p: { xs: 3, sm: 4, md: 5 },
           }}
         >
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 4, textAlign: "center" }}>
             <Typography
-              variant="h5"
+              variant="h4"
               sx={{
                 fontWeight: 800,
-                mb: 0.5,
-                fontSize: { xs: "1.3rem", sm: "1.5rem" },
+                mb: 1,
+                fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
+                background:
+                  mode === "dark"
+                    ? "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)"
+                    : "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
               }}
             >
-              ⚡ Generate Random Pairs
+              ⚡ Generate Matchups
             </Typography>
             <Typography
-              variant="caption"
+              variant="body2"
               sx={{
                 color: "text.secondary",
-                fontSize: { xs: "0.75rem", sm: "0.8rem" },
+                fontSize: { xs: "0.85rem", sm: "0.9rem" },
+                fontWeight: 500,
               }}
             >
-              Mix your players with teams and create exciting matchups
+              Create perfectly balanced team pairings with AI precision
             </Typography>
           </Box>
-
-          <Divider sx={{ mb: 3 }} />
 
           <Box
             sx={{
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
-              gap: 2,
+              gap: 3,
               alignItems: { xs: "stretch", sm: "flex-end" },
-              mb: 3,
-              p: { xs: 2, sm: 2.5 },
-              backgroundColor: "rgba(245, 158, 11, 0.05)",
-              borderRadius: "1rem",
-              border: "1.5px solid rgba(245, 158, 11, 0.2)",
+              mb: 4,
+              p: { xs: 3, sm: 3.5 },
+              backgroundColor:
+                mode === "dark"
+                  ? "rgba(245, 158, 11, 0.1)"
+                  : "rgba(245, 158, 11, 0.05)",
+              borderRadius: "1.5rem",
+              border: `2px solid ${
+                mode === "dark"
+                  ? "rgba(245, 158, 11, 0.2)"
+                  : "rgba(245, 158, 11, 0.15)"
+              }`,
               transition: "all 0.3s ease",
               "&:hover": {
-                borderColor: "rgba(245, 158, 11, 0.4)",
-                backgroundColor: "rgba(245, 158, 11, 0.08)",
+                borderColor:
+                  mode === "dark"
+                    ? "rgba(245, 158, 11, 0.3)"
+                    : "rgba(245, 158, 11, 0.25)",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(245, 158, 11, 0.15)"
+                    : "rgba(245, 158, 11, 0.08)",
               },
             }}
           >
-            <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
+            <FormControl sx={{ minWidth: { xs: "100%", sm: 240 }, flex: 1 }}>
               <InputLabel
                 id="rank-select-label"
                 sx={{
@@ -194,10 +299,23 @@ const FormSubmit = () => {
                 label="Select Team Rank"
                 onChange={handleRankChange}
                 sx={{
-                  borderRadius: "0.75rem",
+                  borderRadius: "12px",
                   fontWeight: 600,
-                  "& .MuiOutlinedInput-root:hover": {
-                    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.1)",
+                  background:
+                    mode === "dark"
+                      ? "rgba(17, 17, 27, 0.6)"
+                      : "rgba(255, 255, 255, 0.9)",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor:
+                      mode === "dark"
+                        ? "rgba(245, 158, 11, 0.3)"
+                        : "rgba(245, 158, 11, 0.2)",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor:
+                      mode === "dark"
+                        ? "rgba(245, 158, 11, 0.5)"
+                        : "rgba(245, 158, 11, 0.4)",
                   },
                 }}
               >
@@ -212,58 +330,90 @@ const FormSubmit = () => {
 
             <Button
               variant="contained"
-              color="warning"
               size="large"
-              startIcon={<ElectricBoltIcon />}
+              startIcon={<AutoAwesomeIcon />}
               endIcon={isGenerating ? null : <ShuffleIcon />}
               onClick={handleShuffle}
               disabled={isGenerating}
               sx={{
-                borderRadius: "0.75rem",
-                px: { xs: 2, sm: 4 },
+                borderRadius: "12px",
+                px: { xs: 3, sm: 4 },
                 py: 1.5,
                 fontWeight: 700,
+                fontSize: { xs: "0.95rem", sm: "1rem" },
                 width: { xs: "100%", sm: "auto" },
-                boxShadow: "0 4px 15px rgba(245, 158, 11, 0.3)",
+                background:
+                  mode === "dark"
+                    ? "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
+                    : "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
+                boxShadow: "0 8px 24px rgba(245, 158, 11, 0.4)",
+                minWidth: { sm: 200 },
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 "&:hover:not(:disabled)": {
-                  boxShadow: "0 6px 20px rgba(245, 158, 11, 0.4)",
-                  transform: "translateY(-2px)",
+                  boxShadow: "0 12px 32px rgba(245, 158, 11, 0.5)",
+                  transform: "translateY(-3px) scale(1.02)",
                 },
-                transition: "all 0.3s ease",
                 "&:disabled": {
-                  opacity: 0.7,
+                  opacity: 0.6,
                 },
               }}
             >
-              {isGenerating ? "Shuffling..." : "Generate Pairs"}
+              {isGenerating ? "Generating..." : "Generate Pairs"}
             </Button>
           </Box>
 
           {randomPairs.length === 0 && (
-            <Fade in={randomPairs.length === 0} timeout={300}>
+            <Fade in={randomPairs.length === 0} timeout={400}>
               <Box
                 sx={{
-                  py: 8,
+                  py: 10,
                   textAlign: "center",
-                  color: "text.secondary",
+                  borderRadius: "1.5rem",
+                  background:
+                    mode === "dark"
+                      ? "rgba(245, 158, 11, 0.05)"
+                      : "rgba(245, 158, 11, 0.03)",
+                  border: `2px dashed ${
+                    mode === "dark"
+                      ? "rgba(245, 158, 11, 0.2)"
+                      : "rgba(245, 158, 11, 0.15)"
+                  }`,
                 }}
               >
-                <Typography variant="h6" sx={{ mb: 1, fontSize: "1.1rem" }}>
-                  🎯 No pairs generated yet
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 1,
+                    fontSize: { xs: "1rem", sm: "1.15rem" },
+                    fontWeight: 600,
+                    opacity: 0.7,
+                  }}
+                >
+                  🎲 Ready to Create Magic?
                 </Typography>
-                <Typography variant="body2">
-                  Select a rank and click "Generate Pairs" to create exciting
-                  random matchups
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", opacity: 0.8 }}
+                >
+                  Select your desired team rank and hit "Generate Pairs" to
+                  create epic matchups
                 </Typography>
               </Box>
             </Fade>
           )}
 
-          {randomPairs.length > 0 && <PairsSection randomPairs={randomPairs} />}
+          {(hasPairs || isGenerating) && (
+            <PairsSection
+              randomPairs={randomPairs}
+              mode={mode}
+              disableAnimation
+              isGenerating={isGenerating}
+            />
+          )}
         </CardContent>
       </Card>
     </Fade>
   );
-};;;
+};
 
 export default FormSubmit;

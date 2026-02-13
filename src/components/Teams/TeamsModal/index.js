@@ -1,13 +1,27 @@
-import { Modal, Button, Box, Typography, IconButton, Alert } from "@mui/material";
+import {
+  Modal,
+  Button,
+  Box,
+  Typography,
+  IconButton,
+  Alert,
+  Backdrop,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import { useContext, useEffect } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 import TeamCard from "./teamCard";
 
-const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
+const TeamsModal = ({
+  open,
+  onClose,
+  showAddTeam,
+  setSelectedTeamId,
+  mode,
+}) => {
   const { teams } = useContext(TeamsContext);
-  
+
   const style = {
     position: "absolute",
     top: "50%",
@@ -16,14 +30,22 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
     width: { xs: "90vw", sm: "95%", md: "100%" },
     maxWidth: { xs: 300, sm: 900, md: 1000 },
     maxHeight: { xs: "90vh", sm: "90vh" },
-    bgcolor: "background.paper",
-    borderRadius: "1rem",
-    boxShadow: 24,
+    borderRadius: "1.5rem",
+    boxShadow:
+      mode === "dark"
+        ? "0 20px 60px rgba(6, 182, 212, 0.3)"
+        : "0 20px 60px rgba(139, 92, 246, 0.2)",
     p: { xs: 2, sm: 3, md: 4 },
     display: "flex",
     flexDirection: "column",
     gap: 2,
     overflowY: "auto",
+    background:
+      mode === "dark" ? "rgba(17, 17, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
+    backdropFilter: "blur(20px)",
+    border: `2px solid ${
+      mode === "dark" ? "rgba(6, 182, 212, 0.3)" : "rgba(139, 92, 246, 0.2)"
+    }`,
     "&::-webkit-scrollbar": {
       width: "0.5em",
     },
@@ -45,7 +67,16 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
   }, [setSelectedTeamId]);
 
   return (
-    <Modal open={open} onClose={onClose} closeAfterTransition>
+    <Modal
+      open={open}
+      onClose={onClose}
+      closeAfterTransition
+      BackdropComponent={Backdrop}
+      BackdropProps={{
+        timeout: 500,
+        sx: { backdropFilter: "blur(6px)" },
+      }}
+    >
       <Box sx={style}>
         <Box
           sx={{
@@ -64,7 +95,10 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
             sx={{
               color: "text.secondary",
               "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.05)",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "rgba(0, 0, 0, 0.05)",
               },
             }}
           >
@@ -99,11 +133,27 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
                   team={team}
                   setSelectedTeamId={setSelectedTeamId}
                   showAddTeam={showAddTeam}
+                  mode={mode}
                 />
               ))}
           </Box>
         ) : (
-          <Alert severity="info" sx={{ borderRadius: "0.5rem", mb: 2 }}>
+          <Alert
+            severity="info"
+            sx={{
+              borderRadius: "0.75rem",
+              mb: 2,
+              background:
+                mode === "dark"
+                  ? "rgba(6, 182, 212, 0.15)"
+                  : "rgba(99, 102, 241, 0.1)",
+              border: `1px solid ${
+                mode === "dark"
+                  ? "rgba(6, 182, 212, 0.35)"
+                  : "rgba(99, 102, 241, 0.2)"
+              }`,
+            }}
+          >
             <Typography variant="body2">
               Create your first team to start building team pairs!
             </Typography>
@@ -117,9 +167,24 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId }) => {
           onClick={showAddTeam}
           fullWidth
           sx={{
-            borderRadius: "0.5rem",
+            borderRadius: "0.75rem",
             py: 1.25,
-            fontWeight: 600,
+            fontWeight: 700,
+            background:
+              mode === "dark"
+                ? "linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)"
+                : "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
+            boxShadow:
+              mode === "dark"
+                ? "0 8px 24px rgba(6, 182, 212, 0.4)"
+                : "0 6px 20px rgba(139, 92, 246, 0.3)",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow:
+                mode === "dark"
+                  ? "0 12px 32px rgba(6, 182, 212, 0.5)"
+                  : "0 10px 28px rgba(139, 92, 246, 0.4)",
+            },
           }}
         >
           Add New Team

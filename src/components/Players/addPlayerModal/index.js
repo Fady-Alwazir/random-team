@@ -13,7 +13,7 @@ import { TeamsContext } from "../../../context/TeamsContext";
 import CloseIcon from "@mui/icons-material/Close";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
-const AddPlayerModal = ({ open, handleClose }) => {
+const AddPlayerModal = ({ open, handleClose, mode }) => {
   const { setPlayers } = useContext(TeamsContext);
   const [player, setPlayer] = useState("");
   const [error, setError] = useState(false);
@@ -25,17 +25,23 @@ const AddPlayerModal = ({ open, handleClose }) => {
     transform: "translate(-50%, -50%)",
     width: { xs: "90vw", sm: "90%", md: "100%" },
     maxWidth: { xs: 300, sm: 450, md: 450 },
-    bgcolor: "background.paper",
     borderRadius: "1.5rem",
-    boxShadow: "0 20px 60px rgba(99, 102, 241, 0.2)",
+    boxShadow:
+      mode === "dark"
+        ? "0 20px 60px rgba(139, 92, 246, 0.3)"
+        : "0 20px 60px rgba(99, 102, 241, 0.2)",
     p: { xs: 2.5, sm: 4 },
     display: "flex",
     flexDirection: "column",
     gap: 2.5,
     maxHeight: { xs: "90vh", sm: "90vh" },
     overflowY: "auto",
-    background: "#ffffff",
-    border: "2px solid rgba(99, 102, 241, 0.2)",
+    background:
+      mode === "dark" ? "rgba(17, 17, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
+    backdropFilter: "blur(20px)",
+    border: `2px solid ${
+      mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(99, 102, 241, 0.2)"
+    }`,
   };
 
   const handleInputChange = (e) => {
@@ -82,14 +88,14 @@ const AddPlayerModal = ({ open, handleClose }) => {
   };
 
   return (
-    <Modal 
-      open={open} 
+    <Modal
+      open={open}
       onClose={handleClose}
       closeAfterTransition
       BackdropComponent={Backdrop}
       BackdropProps={{
         timeout: 500,
-        sx: { backdropFilter: "blur(4px)" }
+        sx: { backdropFilter: "blur(4px)" },
       }}
     >
       <Box sx={style}>
@@ -125,20 +131,22 @@ const AddPlayerModal = ({ open, handleClose }) => {
           </IconButton>
         </Box>
 
-        <Alert 
-          severity="info" 
-          sx={{ 
+        <Alert
+          severity="info"
+          sx={{
             borderRadius: "0.75rem",
-            background: "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)",
+            background:
+              "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)",
             border: "1px solid rgba(99, 102, 241, 0.2)",
             color: "text.primary",
             "& .MuiAlert-icon": {
               color: "primary.main",
-            }
+            },
           }}
         >
           <Typography variant="body2">
-            <strong>💡 Tip:</strong> Add one player or multiple at once! Separate names with a comma
+            <strong>💡 Tip:</strong> Add one player or multiple at once!
+            Separate names with a comma
           </Typography>
         </Alert>
 
@@ -163,23 +171,40 @@ const AddPlayerModal = ({ open, handleClose }) => {
             "& .MuiOutlinedInput-root": {
               borderRadius: "0.75rem",
               transition: "all 0.3s ease",
-              "&:hover": {
-                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.1)",
+              backgroundColor:
+                mode === "dark"
+                  ? "rgba(139, 92, 246, 0.05)"
+                  : "rgba(255, 255, 255, 0.8)",
+              "& fieldset": {
+                borderColor:
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.3)"
+                    : "rgba(99, 102, 241, 0.2)",
               },
-              "&.Mui-focused": {
-                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.15)",
-              }
+              "&:hover fieldset": {
+                borderColor:
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.5)"
+                    : "rgba(99, 102, 241, 0.4)",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
+              },
             },
             "& .MuiOutlinedInput-input": {
               fontWeight: 500,
-            }
+              color: "text.primary",
+            },
+            "& .MuiInputLabel-root": {
+              color: "text.secondary",
+            },
           }}
         />
 
         {error && (
-          <Alert 
-            severity="error" 
-            sx={{ 
+          <Alert
+            severity="error"
+            sx={{
               borderRadius: "0.75rem",
               background: "rgba(239, 68, 68, 0.08)",
               border: "1px solid rgba(239, 68, 68, 0.2)",
@@ -203,14 +228,14 @@ const AddPlayerModal = ({ open, handleClose }) => {
             variant="outlined"
             color="inherit"
             onClick={handleClose}
-            sx={{ 
+            sx={{
               borderRadius: "0.75rem",
               border: "1.5px solid rgba(99, 102, 241, 0.2)",
               fontWeight: 600,
               "&:hover": {
                 border: "1.5px solid rgba(99, 102, 241, 0.4)",
                 backgroundColor: "rgba(99, 102, 241, 0.05)",
-              }
+              },
             }}
           >
             Cancel

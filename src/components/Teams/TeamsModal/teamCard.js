@@ -1,10 +1,18 @@
-import { Box, Typography, Avatar, Rating, IconButton, Card, CardContent } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Rating,
+  IconButton,
+  Card,
+  CardContent,
+} from "@mui/material";
 import { useContext } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { TeamsContext } from "../../../context/TeamsContext";
 
-const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
+const TeamCard = ({ team, setSelectedTeamId, showAddTeam, mode }) => {
   const { setTeams } = useContext(TeamsContext);
 
   const deleteTeam = (id) => {
@@ -19,14 +27,27 @@ const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
   return (
     <Card
       sx={{
-        borderRadius: "0.75rem",
+        borderRadius: "1rem",
+        background:
+          mode === "dark"
+            ? "rgba(17, 17, 27, 0.7)"
+            : "rgba(255, 255, 255, 0.9)",
+        border: `1.5px solid ${
+          mode === "dark"
+            ? "rgba(139, 92, 246, 0.25)"
+            : "rgba(99, 102, 241, 0.15)"
+        }`,
+        backdropFilter: "blur(16px)",
         transition: "all 0.3s ease",
         height: "100%",
         display: "flex",
         flexDirection: "column",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: "0 12px 24px rgba(99, 102, 241, 0.15)",
+          boxShadow:
+            mode === "dark"
+              ? "0 12px 28px rgba(139, 92, 246, 0.25)"
+              : "0 12px 24px rgba(99, 102, 241, 0.15)",
         },
       }}
     >
@@ -48,8 +69,11 @@ const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
             width: 90,
             height: 90,
             border: "4px solid",
-            borderColor: "primary.light",
-            boxShadow: "0 4px 12px rgba(99, 102, 241, 0.2)",
+            borderColor: mode === "dark" ? "#a78bfa" : "primary.light",
+            boxShadow:
+              mode === "dark"
+                ? "0 4px 14px rgba(139, 92, 246, 0.35)"
+                : "0 4px 12px rgba(99, 102, 241, 0.2)",
           }}
         />
 
@@ -58,7 +82,7 @@ const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
             variant="h6"
             sx={{
               fontWeight: 700,
-              color: "primary.main",
+              color: mode === "dark" ? "#a78bfa" : "primary.main",
               mb: 1,
               wordBreak: "break-word",
             }}
@@ -82,17 +106,27 @@ const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
             justifyContent: "center",
             width: "100%",
             pt: 1,
-            borderTop: "1px solid rgba(0, 0, 0, 0.08)",
+            borderTop: `1px solid ${
+              mode === "dark"
+                ? "rgba(255, 255, 255, 0.08)"
+                : "rgba(0, 0, 0, 0.08)"
+            }`,
           }}
         >
           <IconButton
             size="small"
             onClick={() => onEditTeam(team.id)}
             sx={{
-              color: "primary.main",
-              backgroundColor: "rgba(99, 102, 241, 0.1)",
+              color: mode === "dark" ? "#a78bfa" : "primary.main",
+              backgroundColor:
+                mode === "dark"
+                  ? "rgba(139, 92, 246, 0.15)"
+                  : "rgba(99, 102, 241, 0.1)",
               "&:hover": {
-                backgroundColor: "rgba(99, 102, 241, 0.2)",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.25)"
+                    : "rgba(99, 102, 241, 0.2)",
               },
               transition: "all 0.2s ease",
             }}
@@ -104,10 +138,16 @@ const TeamCard = ({ team, setSelectedTeamId, showAddTeam }) => {
             size="small"
             onClick={() => deleteTeam(team.id)}
             sx={{
-              color: "error.main",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              color: mode === "dark" ? "#f87171" : "error.main",
+              backgroundColor:
+                mode === "dark"
+                  ? "rgba(239, 68, 68, 0.15)"
+                  : "rgba(239, 68, 68, 0.1)",
               "&:hover": {
-                backgroundColor: "rgba(239, 68, 68, 0.2)",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(239, 68, 68, 0.25)"
+                    : "rgba(239, 68, 68, 0.2)",
               },
               transition: "all 0.2s ease",
             }}

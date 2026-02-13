@@ -8,13 +8,14 @@ import {
   Rating,
   Alert,
   Stack,
+  Backdrop,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
 import { useContext, useEffect, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 
-const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
+const AddTeamModal = ({ open, onClose, selectedTeamId, mode }) => {
   const { teams, setTeams } = useContext(TeamsContext);
   const [team, setTeam] = useState({
     name: "",
@@ -31,15 +32,23 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
     transform: "translate(-50%, -50%)",
     width: { xs: "90vw", sm: "90%", md: "100%" },
     maxWidth: { xs: 300, sm: 500, md: 500 },
-    bgcolor: "background.paper",
-    borderRadius: "1rem",
-    boxShadow: 24,
+    borderRadius: "1.5rem",
+    boxShadow:
+      mode === "dark"
+        ? "0 20px 60px rgba(139, 92, 246, 0.3)"
+        : "0 20px 60px rgba(99, 102, 241, 0.2)",
     p: { xs: 2.5, sm: 4 },
     display: "flex",
     flexDirection: "column",
     gap: 2,
     maxHeight: { xs: "90vh", sm: "90vh" },
     overflowY: "auto",
+    background:
+      mode === "dark" ? "rgba(17, 17, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
+    backdropFilter: "blur(20px)",
+    border: `2px solid ${
+      mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(99, 102, 241, 0.2)"
+    }`,
     "&::-webkit-scrollbar": {
       width: "0.5em",
     },
@@ -87,9 +96,11 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
       return;
     }
 
+    const imageSource = team.image ? "custom" : team.imageSource;
+
     if (selectedTeamId) {
       const updatedTeam = teams.map((t) =>
-        t.id === selectedTeamId ? { ...t, ...team } : t
+        t.id === selectedTeamId ? { ...t, ...team, imageSource } : t,
       );
       setTeams(updatedTeam);
     } else {
@@ -97,6 +108,7 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
         ...teams,
         {
           ...team,
+          imageSource,
           id: new Date().getTime(),
         },
       ]);
@@ -108,7 +120,16 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
   };
 
   return (
-    <Modal open={open} onClose={onClose} closeAfterTransition>
+    <Modal
+      open={open}
+      onClose={onClose}
+      closeAfterTransition
+      BackdropComponent={Backdrop}
+      BackdropProps={{
+        timeout: 500,
+        sx: { backdropFilter: "blur(6px)" },
+      }}
+    >
       <Box sx={style}>
         <Box
           sx={{
@@ -126,7 +147,10 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
             sx={{
               color: "text.secondary",
               "&:hover": {
-                backgroundColor: "rgba(0, 0, 0, 0.05)",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(255, 255, 255, 0.08)"
+                    : "rgba(0, 0, 0, 0.05)",
               },
             }}
           >
@@ -144,10 +168,37 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
             value={team.name}
             onChange={handleChange}
             error={error && team.name.trim() === ""}
-            helperText={error && team.name.trim() === "" ? "Team name is required" : ""}
+            helperText={
+              error && team.name.trim() === "" ? "Team name is required" : ""
+            }
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: "0.5rem",
+                borderRadius: "0.75rem",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.05)"
+                    : "rgba(255, 255, 255, 0.8)",
+                "& fieldset": {
+                  borderColor:
+                    mode === "dark"
+                      ? "rgba(139, 92, 246, 0.3)"
+                      : "rgba(99, 102, 241, 0.2)",
+                },
+                "&:hover fieldset": {
+                  borderColor:
+                    mode === "dark"
+                      ? "rgba(139, 92, 246, 0.5)"
+                      : "rgba(99, 102, 241, 0.4)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
+                },
+              },
+              "& .MuiOutlinedInput-input": {
+                color: "text.primary",
+              },
+              "& .MuiInputLabel-root": {
+                color: "text.secondary",
               },
             }}
           />
@@ -163,7 +214,32 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
             helperText="Paste the URL of your team's logo or image"
             sx={{
               "& .MuiOutlinedInput-root": {
-                borderRadius: "0.5rem",
+                borderRadius: "0.75rem",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.05)"
+                    : "rgba(255, 255, 255, 0.8)",
+                "& fieldset": {
+                  borderColor:
+                    mode === "dark"
+                      ? "rgba(139, 92, 246, 0.3)"
+                      : "rgba(99, 102, 241, 0.2)",
+                },
+                "&:hover fieldset": {
+                  borderColor:
+                    mode === "dark"
+                      ? "rgba(139, 92, 246, 0.5)"
+                      : "rgba(99, 102, 241, 0.4)",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
+                },
+              },
+              "& .MuiOutlinedInput-input": {
+                color: "text.primary",
+              },
+              "& .MuiInputLabel-root": {
+                color: "text.secondary",
               },
             }}
           />
@@ -176,9 +252,16 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
                 alignItems: "center",
                 gap: 1,
                 p: 2,
-                backgroundColor: "rgba(99, 102, 241, 0.05)",
+                backgroundColor:
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.08)"
+                    : "rgba(99, 102, 241, 0.05)",
                 borderRadius: "0.75rem",
-                border: "2px dashed rgba(99, 102, 241, 0.3)",
+                border: `2px dashed ${
+                  mode === "dark"
+                    ? "rgba(139, 92, 246, 0.3)"
+                    : "rgba(99, 102, 241, 0.3)"
+                }`,
               }}
             >
               <Typography variant="caption" sx={{ color: "text.secondary" }}>
@@ -194,7 +277,9 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
                   height: 80,
                   borderRadius: "50%",
                   objectFit: "cover",
-                  border: "3px solid white",
+                  border: `3px solid ${
+                    mode === "dark" ? "rgba(255, 255, 255, 0.8)" : "white"
+                  }`,
                   boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                 }}
               />
@@ -216,7 +301,21 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
           </Box>
 
           {error && team.name.trim() === "" && (
-            <Alert severity="error" sx={{ borderRadius: "0.5rem" }}>
+            <Alert
+              severity="error"
+              sx={{
+                borderRadius: "0.75rem",
+                background:
+                  mode === "dark"
+                    ? "rgba(239, 68, 68, 0.15)"
+                    : "rgba(239, 68, 68, 0.08)",
+                border: `1px solid ${
+                  mode === "dark"
+                    ? "rgba(239, 68, 68, 0.4)"
+                    : "rgba(239, 68, 68, 0.2)"
+                }`,
+              }}
+            >
               <Typography variant="body2">
                 Please enter a valid team name
               </Typography>
@@ -231,10 +330,25 @@ const AddTeamModal = ({ open, onClose, selectedTeamId }) => {
           startIcon={<SaveIcon />}
           onClick={onSubmit}
           sx={{
-            borderRadius: "0.5rem",
+            borderRadius: "0.75rem",
             py: 1.25,
-            fontWeight: 600,
+            fontWeight: 700,
             mt: 2,
+            background:
+              mode === "dark"
+                ? "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)"
+                : "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+            boxShadow:
+              mode === "dark"
+                ? "0 8px 24px rgba(139, 92, 246, 0.4)"
+                : "0 6px 20px rgba(99, 102, 241, 0.3)",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow:
+                mode === "dark"
+                  ? "0 12px 32px rgba(139, 92, 246, 0.5)"
+                  : "0 10px 28px rgba(99, 102, 241, 0.4)",
+            },
           }}
         >
           {selectedTeamId ? "Update Team" : "Add Team"}
