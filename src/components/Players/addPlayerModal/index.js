@@ -45,38 +45,38 @@ const AddPlayerModal = ({ open, handleClose, mode }) => {
   };
 
   const handleInputChange = (e) => {
-    if (e.target.value.includes(",")) {
-      const players = e.target.value.split(",");
-      setPlayer(players);
-    } else {
-      setPlayer(e.target.value);
-    }
+    setPlayer(e.target.value);
     setError(false);
   };
 
   const handleAddPlayer = () => {
-    if (typeof player === "string" && player.trim() === "") {
+    if (!player || player.trim() === "") {
       setError(true);
       return;
     }
 
-    if (Array.isArray(player)) {
-      player.forEach((player, index) => {
-        if (player.trim()) {
-          setPlayers((players) => [
-            ...players,
-            {
-              name: player.trim(),
-              id: new Date().getTime() + index,
-            },
-          ]);
-        }
+    // Check if input contains commas - add multiple players
+    if (player.includes(",")) {
+      const playerNames = player
+        .split(",")
+        .map((name) => name.trim())
+        .filter((name) => name);
+
+      playerNames.forEach((name, index) => {
+        setPlayers((players) => [
+          ...players,
+          {
+            name: name,
+            id: new Date().getTime() + index,
+          },
+        ]);
       });
     } else {
+      // Add single player
       setPlayers((players) => [
         ...players,
         {
-          name: player,
+          name: player.trim(),
           id: new Date().getTime(),
         },
       ]);
@@ -85,7 +85,7 @@ const AddPlayerModal = ({ open, handleClose, mode }) => {
     setError(false);
     setPlayer("");
     handleClose();
-  };
+  };;
 
   return (
     <Modal
@@ -155,8 +155,8 @@ const AddPlayerModal = ({ open, handleClose, mode }) => {
           label="Player Name(s)"
           placeholder="e.g., John Doe or John, Sarah, Mike"
           variant="outlined"
-          value={Array.isArray(player) ? player.join(", ") : player}
-          onChange={(e) => handleInputChange(e)}
+          value={player}
+          onChange={handleInputChange}
           onKeyPress={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();

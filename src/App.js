@@ -1,12 +1,21 @@
 import { Box, Container, ThemeProvider, IconButton, Fade } from "@mui/material";
 import { FormSubmit, Header, Players, Teams } from "./components";
 import { createTheme } from "@mui/material/styles";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 
 function App() {
-  const [mode, setMode] = useState("dark");
+  // Load saved mode preference from localStorage, default to "dark"
+  const [mode, setMode] = useState(() => {
+    const savedMode = localStorage.getItem("themeMode");
+    return savedMode === "light" || savedMode === "dark" ? savedMode : "dark";
+  });
+
+  // Save mode preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("themeMode", mode);
+  }, [mode]);
 
   const theme = useMemo(
     () =>

@@ -88,7 +88,7 @@ const Teams = ({ mode }) => {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              Teams Arsenal
+              Teams
             </Typography>
             <Typography
               variant="body2"

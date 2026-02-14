@@ -13,14 +13,8 @@ import { useContext, useEffect } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
 import TeamCard from "./teamCard";
 
-const TeamsModal = ({
-  open,
-  onClose,
-  showAddTeam,
-  setSelectedTeamId,
-  mode,
-}) => {
-  const { teams } = useContext(TeamsContext);
+const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId, mode }) => {
+  const { teams, setTeams } = useContext(TeamsContext);
 
   const style = {
     position: "absolute",
@@ -65,6 +59,42 @@ const TeamsModal = ({
   useEffect(() => {
     setSelectedTeamId(null);
   }, [setSelectedTeamId]);
+
+  // Load cached team images when modal opens
+  useEffect(() => {
+    if (!open || !teams || teams.length === 0) return;
+
+    const imageCacheKey = "teamImageCache";
+
+    const getImageCache = () => {
+      try {
+        const cache = JSON.parse(localStorage.getItem(imageCacheKey));
+        return cache && typeof cache === "object" ? cache : {};
+      } catch (error) {
+        return {};
+      }
+    };
+
+    const cache = getImageCache();
+    let hasUpdates = false;
+
+    const updatedTeams = teams.map((team) => {
+      const cached = cache[team.id];
+      if (
+        cached?.image &&
+        cached?.source === "sportsdb" &&
+        team.image !== cached.image
+      ) {
+        hasUpdates = true;
+        return { ...team, image: cached.image, imageSource: "sportsdb" };
+      }
+      return team;
+    });
+
+    if (hasUpdates) {
+      setTeams(updatedTeams);
+    }
+  }, [open, teams, setTeams]);
 
   return (
     <Modal
@@ -192,6 +222,6 @@ const TeamsModal = ({
       </Box>
     </Modal>
   );
-};
+};;
 
 export default TeamsModal;
