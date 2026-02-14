@@ -31,7 +31,7 @@ const AddTeamModal = ({ open, onClose, selectedTeamId, mode }) => {
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: { xs: "90vw", sm: "90%", md: "100%" },
-    maxWidth: { xs: 300, sm: 500, md: 500 },
+    maxWidth: { xs: "90vw", sm: 500, md: 500 },
     borderRadius: "1.5rem",
     boxShadow:
       mode === "dark"
@@ -138,7 +138,10 @@ const AddTeamModal = ({ open, onClose, selectedTeamId, mode }) => {
             alignItems: "center",
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 700, color: "text.primary" }}
+          >
             {selectedTeamId ? "✏️ Edit Team" : "➕ Add New Team"}
           </Typography>
           <IconButton
@@ -287,7 +290,10 @@ const AddTeamModal = ({ open, onClose, selectedTeamId, mode }) => {
           )}
 
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ mb: 1.5, fontWeight: 600, color: "text.primary" }}
+            >
               Team Rating ⭐
             </Typography>
             <Box sx={{ display: "flex", justifyContent: "center" }}>

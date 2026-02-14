@@ -24,16 +24,16 @@ function App() {
           mode,
           ...(mode === "light"
             ? {
-                // Light Theme - Elegant & Premium
+                // Light Theme - Clean & Joyful
                 primary: {
-                  main: "#6366f1",
-                  light: "#818cf8",
-                  dark: "#4f46e5",
+                  main: "#7c3aed",
+                  light: "#a78bfa",
+                  dark: "#6d28d9",
                 },
                 secondary: {
-                  main: "#8b5cf6",
+                  main: "#7c3aed",
                   light: "#a78bfa",
-                  dark: "#7c3aed",
+                  dark: "#6d28d9",
                 },
                 success: {
                   main: "#10b981",
@@ -48,25 +48,25 @@ function App() {
                   light: "#f87171",
                 },
                 background: {
-                  default: "#fafafa",
-                  paper: "rgba(255, 255, 255, 0.9)",
+                  default: "#ffffff",
+                  paper: "rgba(255, 255, 255, 0.95)",
                 },
                 text: {
-                  primary: "#1a1a2e",
-                  secondary: "#64748b",
+                  primary: "#1f2937",
+                  secondary: "#6b7280",
                 },
               }
             : {
-                // Dark Theme - NFT/Cyberpunk Inspired
+                // Dark Theme - Simple NFT Vibe
                 primary: {
-                  main: "#8b5cf6",
-                  light: "#a78bfa",
-                  dark: "#7c3aed",
+                  main: "#a78bfa",
+                  light: "#c4b5fd",
+                  dark: "#8b5cf6",
                 },
                 secondary: {
-                  main: "#06b6d4",
-                  light: "#22d3ee",
-                  dark: "#0891b2",
+                  main: "#a78bfa",
+                  light: "#c4b5fd",
+                  dark: "#8b5cf6",
                 },
                 success: {
                   main: "#10b981",
@@ -81,12 +81,12 @@ function App() {
                   light: "#f87171",
                 },
                 background: {
-                  default: "#0a0a0f",
-                  paper: "rgba(17, 17, 27, 0.8)",
+                  default: "#0f0f1a",
+                  paper: "rgba(24, 24, 37, 0.9)",
                 },
                 text: {
-                  primary: "#f8fafc",
-                  secondary: "#94a3b8",
+                  primary: "#f9fafb",
+                  secondary: "#9ca3af",
                 },
               }),
         },
@@ -143,8 +143,8 @@ function App() {
           overflowX: "hidden",
           background:
             mode === "dark"
-              ? "linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%)"
-              : "linear-gradient(135deg, #fafafa 0%, #f0f4ff 50%, #e8f0fe 100%)",
+              ? "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)"
+              : "linear-gradient(135deg, #ffffff 0%, #faf5ff 100%)",
           "&::before": {
             content: '""',
             position: "absolute",
@@ -154,17 +154,16 @@ function App() {
             bottom: 0,
             background:
               mode === "dark"
-                ? `radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-                   radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
-                   radial-gradient(circle at 40% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%)`
-                : `radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                   radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%)`,
+                ? `radial-gradient(circle at 30% 40%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
+                   radial-gradient(circle at 70% 70%, rgba(167, 139, 250, 0.08) 0%, transparent 50%)`
+                : `radial-gradient(circle at 30% 40%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+                   radial-gradient(circle at 70% 70%, rgba(124, 58, 237, 0.04) 0%, transparent 50%)`,
             pointerEvents: "none",
-            animation: "gradientShift 15s ease infinite",
+            animation: "gradientShift 20s ease infinite",
           },
           "@keyframes gradientShift": {
             "0%, 100%": { opacity: 1 },
-            "50%": { opacity: 0.8 },
+            "50%": { opacity: 0.7 },
           },
         }}
       >
@@ -179,27 +178,27 @@ function App() {
               zIndex: 1300,
               background:
                 mode === "dark"
-                  ? "rgba(139, 92, 246, 0.2)"
-                  : "rgba(99, 102, 241, 0.1)",
+                  ? "rgba(167, 139, 250, 0.15)"
+                  : "rgba(124, 58, 237, 0.08)",
               backdropFilter: "blur(10px)",
-              border: `1px solid ${mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(99, 102, 241, 0.2)"}`,
+              border: `1px solid ${mode === "dark" ? "rgba(167, 139, 250, 0.25)" : "rgba(124, 58, 237, 0.15)"}`,
               width: { xs: 48, sm: 56 },
               height: { xs: 48, sm: 56 },
               boxShadow:
                 mode === "dark"
-                  ? "0 8px 32px rgba(139, 92, 246, 0.3)"
-                  : "0 4px 20px rgba(99, 102, 241, 0.2)",
+                  ? "0 8px 32px rgba(167, 139, 250, 0.2)"
+                  : "0 4px 20px rgba(124, 58, 237, 0.15)",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               "&:hover": {
                 background:
                   mode === "dark"
-                    ? "rgba(139, 92, 246, 0.3)"
-                    : "rgba(99, 102, 241, 0.15)",
+                    ? "rgba(167, 139, 250, 0.25)"
+                    : "rgba(124, 58, 237, 0.12)",
                 transform: "scale(1.05) rotate(180deg)",
                 boxShadow:
                   mode === "dark"
-                    ? "0 12px 48px rgba(139, 92, 246, 0.4)"
-                    : "0 8px 32px rgba(99, 102, 241, 0.3)",
+                    ? "0 12px 48px rgba(167, 139, 250, 0.3)"
+                    : "0 8px 32px rgba(124, 58, 237, 0.2)",
               },
             }}
           >
@@ -209,7 +208,7 @@ function App() {
               />
             ) : (
               <Brightness4Icon
-                sx={{ color: "#6366f1", fontSize: { xs: 24, sm: 28 } }}
+                sx={{ color: "#7c3aed", fontSize: { xs: 24, sm: 28 } }}
               />
             )}
           </IconButton>

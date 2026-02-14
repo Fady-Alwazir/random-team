@@ -24,7 +24,7 @@ const AddPlayerModal = ({ open, handleClose, mode }) => {
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: { xs: "90vw", sm: "90%", md: "100%" },
-    maxWidth: { xs: 300, sm: 450, md: 450 },
+    maxWidth: { xs: "90vw", sm: 450, md: 450 },
     borderRadius: "1.5rem",
     boxShadow:
       mode === "dark"
@@ -107,7 +107,10 @@ const AddPlayerModal = ({ open, handleClose, mode }) => {
           }}
         >
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 800, mb: 0.5, color: "text.primary" }}
+            >
               ➕ Add New Player
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>

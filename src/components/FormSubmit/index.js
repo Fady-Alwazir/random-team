@@ -8,7 +8,7 @@ import {
   FormControl,
   Fade,
 } from "@mui/material";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef } from "react";
 import { TeamsContext } from "../../context/TeamsContext";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import Button from "@mui/material/Button";
@@ -23,6 +23,7 @@ const FormSubmit = ({ mode }) => {
   const [randomPairs, setRandomPairs] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasPairs, setHasPairs] = useState(false);
+  const pairsSectionRef = useRef(null);
 
   const handleRankChange = (e) => {
     setRank(e.target.value);
@@ -162,15 +163,17 @@ const FormSubmit = ({ mode }) => {
           setRandomPairs(updatedPairs);
         }
       });
+    }, 300);
 
-      const screenWidth = window.innerWidth;
-      if (screenWidth < 600) {
-        window.scrollTo({
-          top: document.body.scrollHeight,
+    // Scroll to pairs section after DOM updates
+    setTimeout(() => {
+      if (pairsSectionRef.current) {
+        pairsSectionRef.current.scrollIntoView({
           behavior: "smooth",
+          block: "start",
         });
       }
-    }, 300);
+    }, 200);
   };
 
   return (
@@ -403,12 +406,14 @@ const FormSubmit = ({ mode }) => {
           )}
 
           {(hasPairs || isGenerating) && (
-            <PairsSection
-              randomPairs={randomPairs}
-              mode={mode}
-              disableAnimation
-              isGenerating={isGenerating}
-            />
+            <Box ref={pairsSectionRef}>
+              <PairsSection
+                randomPairs={randomPairs}
+                mode={mode}
+                disableAnimation
+                isGenerating={isGenerating}
+              />
+            </Box>
           )}
         </CardContent>
       </Card>
