@@ -1,263 +1,182 @@
-import {
-  Box,
-  Typography,
-  IconButton,
-  Fade,
-  TextField,
-  Avatar,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import { Box, Typography, IconButton, TextField } from "@mui/material";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
-import PersonIcon from "@mui/icons-material/Person";
-import { TeamsContext } from "../../../context/TeamsContext";
 import { useContext, useState } from "react";
+import { TeamsContext } from "../../../context/TeamsContext";
+
+const SHIRT_COLORS = [
+  "#22c55e", "#60a5fa", "#f87171", "#fbbf24",
+  "#a78bfa", "#34d399", "#f97316", "#e879f9",
+];
+
+const shirtColor = (name) => SHIRT_COLORS[name.charCodeAt(0) % SHIRT_COLORS.length];
 
 const Player = ({ name, id, mode }) => {
   const { setPlayers } = useContext(TeamsContext);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
+  const [removing, setRemoving] = useState(false);
+  const isDark = mode === "dark";
+  const color = shirtColor(name);
 
-  const deletePlayer = (id) => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      setPlayers((players) => players.filter((player) => player.id !== id));
-    }, 200);
+  const remove = () => {
+    setRemoving(true);
+    setTimeout(() => setPlayers((p) => p.filter((x) => x.id !== id)), 220);
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditedName(name);
-  };
-
-  const handleSave = () => {
+  const save = () => {
     if (editedName.trim()) {
-      setPlayers((players) =>
-        players.map((player) =>
-          player.id === id ? { ...player, name: editedName.trim() } : player,
-        ),
-      );
+      setPlayers((p) => p.map((x) => (x.id === id ? { ...x, name: editedName.trim() } : x)));
       setIsEditing(false);
     }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
+  const cancel = () => {
     setEditedName(name);
-  };
-
-  // Generate consistent color from name
-  const getAvatarGradient = (name) => {
-    const colors = [
-      ["#8b5cf6", "#a78bfa"],
-      ["#06b6d4", "#22d3ee"],
-      ["#f59e0b", "#fbbf24"],
-      ["#ef4444", "#f87171"],
-      ["#10b981", "#34d399"],
-      ["#6366f1", "#818cf8"],
-    ];
-    const index = name.charCodeAt(0) % colors.length;
-    return `linear-gradient(135deg, ${colors[index][0]} 0%, ${colors[index][1]} 100%)`;
+    setIsEditing(false);
   };
 
   return (
-    <Fade in={!isDeleting} timeout={300}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        py: 1.2,
+        px: 1.5,
+        borderRadius: "10px",
+        bgcolor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}`,
+        opacity: removing ? 0 : 1,
+        transform: removing ? "translateX(20px)" : "translateX(0)",
+        transition: "opacity 0.2s ease, transform 0.2s ease",
+        minHeight: 52,
+        "&:hover": {
+          bgcolor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+        },
+      }}
+    >
+      {/* Avatar / shirt */}
       <Box
         sx={{
+          width: 36,
+          height: 36,
+          borderRadius: "8px",
+          bgcolor: `${color}22`,
+          border: `2px solid ${color}55`,
+          color: color,
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
-          p: 2,
-          borderRadius: "1rem",
-          background:
-            mode === "dark"
-              ? "rgba(139, 92, 246, 0.08)"
-              : "rgba(99, 102, 241, 0.05)",
-          border: `1px solid ${mode === "dark" ? "rgba(139, 92, 246, 0.15)" : "rgba(99, 102, 241, 0.1)"}`,
-          backdropFilter: "blur(10px)",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          "&:hover": {
-            background:
-              mode === "dark"
-                ? "rgba(139, 92, 246, 0.15)"
-                : "rgba(99, 102, 241, 0.1)",
-            border: `1px solid ${mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(99, 102, 241, 0.2)"}`,
-            transform: "translateX(8px) scale(1.01)",
-            boxShadow:
-              mode === "dark"
-                ? "0 4px 20px rgba(139, 92, 246, 0.2)"
-                : "0 4px 16px rgba(99, 102, 241, 0.15)",
-          },
+          justifyContent: "center",
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 800,
+          fontSize: "0.9rem",
+          flexShrink: 0,
+          letterSpacing: "0.02em",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-          <Avatar
+        {name.slice(0, 2).toUpperCase()}
+      </Box>
+
+      {/* Name / edit field */}
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        {isEditing ? (
+          <TextField
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") save();
+              if (e.key === "Escape") cancel();
+            }}
+            autoFocus
+            size="small"
+            variant="standard"
+            fullWidth
+            inputProps={{ style: { fontFamily: "'Barlow', sans-serif", fontWeight: 600, fontSize: "0.95rem" } }}
             sx={{
-              width: 44,
-              height: 44,
-              background: getAvatarGradient(name),
-              boxShadow:
-                mode === "dark"
-                  ? "0 4px 12px rgba(139, 92, 246, 0.3)"
-                  : "0 3px 10px rgba(99, 102, 241, 0.25)",
-              fontWeight: 700,
-              fontSize: "1.1rem",
+              "& .MuiInput-underline:after": {
+                borderBottomColor: isDark ? "#22c55e" : "#16a34a",
+              },
+            }}
+          />
+        ) : (
+          <Typography
+            sx={{
+              fontFamily: "'Barlow', sans-serif",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              color: isDark ? "#f0f6ff" : "#0f172a",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            {!isEditing && <PersonIcon />}
-          </Avatar>
-          {isEditing ? (
-            <TextField
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  handleSave();
-                } else if (e.key === "Escape") {
-                  handleCancel();
-                }
-              }}
-              autoFocus
+            {name}
+          </Typography>
+        )}
+      </Box>
+
+      {/* Actions */}
+      <Box sx={{ display: "flex", gap: 0.5, flexShrink: 0 }}>
+        {isEditing ? (
+          <>
+            <IconButton
               size="small"
-              variant="outlined"
+              onClick={save}
               sx={{
-                flex: 1,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "0.75rem",
-                  fontWeight: 600,
-                  backgroundColor:
-                    mode === "dark"
-                      ? "rgba(17, 17, 27, 0.8)"
-                      : "rgba(255, 255, 255, 0.9)",
-                  "&:hover fieldset": {
-                    borderColor:
-                      mode === "dark"
-                        ? "rgba(139, 92, 246, 0.5)"
-                        : "rgba(99, 102, 241, 0.4)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
-                  },
-                },
-              }}
-            />
-          ) : (
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: 700,
-                color: "text.primary",
-                fontSize: { xs: "1rem", sm: "1.05rem" },
-                letterSpacing: "0.01em",
+                width: 34, height: 34, borderRadius: "8px",
+                color: "#22c55e",
+                bgcolor: "rgba(34,197,94,0.1)",
+                "&:hover": { bgcolor: "rgba(34,197,94,0.2)" },
               }}
             >
-              {name}
-            </Typography>
-          )}
-        </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {isEditing ? (
-            <>
-              <IconButton
-                size="small"
-                onClick={handleSave}
-                sx={{
-                  color: "white",
-                  background:
-                    "linear-gradient(135deg, #10b981 0%, #34d399 100%)",
-                  width: 36,
-                  height: 36,
-                  boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
-                  "&:hover": {
-                    background:
-                      "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-                    transform: "scale(1.1)",
-                    boxShadow: "0 6px 16px rgba(16, 185, 129, 0.4)",
-                  },
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <CheckIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={handleCancel}
-                sx={{
-                  color: "white",
-                  background:
-                    mode === "dark"
-                      ? "rgba(248, 250, 252, 0.1)"
-                      : "rgba(100, 116, 139, 0.6)",
-                  width: 36,
-                  height: 36,
-                  "&:hover": {
-                    background:
-                      mode === "dark"
-                        ? "rgba(248, 250, 252, 0.2)"
-                        : "rgba(100, 116, 139, 0.8)",
-                    transform: "scale(1.1)",
-                  },
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <IconButton
-                size="small"
-                onClick={handleEdit}
-                sx={{
-                  color: mode === "dark" ? "#a78bfa" : "#6366f1",
-                  background:
-                    mode === "dark"
-                      ? "rgba(139, 92, 246, 0.15)"
-                      : "rgba(99, 102, 241, 0.1)",
-                  width: 36,
-                  height: 36,
-                  "&:hover": {
-                    background:
-                      mode === "dark"
-                        ? "rgba(139, 92, 246, 0.25)"
-                        : "rgba(99, 102, 241, 0.2)",
-                    transform: "scale(1.1) rotate(15deg)",
-                  },
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={() => deletePlayer(id)}
-                sx={{
-                  color: mode === "dark" ? "#f87171" : "#ef4444",
-                  background:
-                    mode === "dark"
-                      ? "rgba(239, 68, 68, 0.15)"
-                      : "rgba(239, 68, 68, 0.1)",
-                  width: 36,
-                  height: 36,
-                  "&:hover": {
-                    background:
-                      mode === "dark"
-                        ? "rgba(239, 68, 68, 0.25)"
-                        : "rgba(239, 68, 68, 0.2)",
-                    transform: "scale(1.1) rotate(90deg)",
-                  },
-                  transition: "all 0.3s ease",
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </>
-          )}
-        </Box>
+              <CheckIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={cancel}
+              sx={{
+                width: 34, height: 34, borderRadius: "8px",
+                color: isDark ? "#64748b" : "#9ca3af",
+                bgcolor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+                "&:hover": { bgcolor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)" },
+              }}
+            >
+              <CloseIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </>
+        ) : (
+          <>
+            <IconButton
+              size="small"
+              onClick={() => { setIsEditing(true); setEditedName(name); }}
+              sx={{
+                width: 34, height: 34, borderRadius: "8px",
+                color: isDark ? "#60a5fa" : "#3b82f6",
+                bgcolor: isDark ? "rgba(96,165,250,0.08)" : "rgba(59,130,246,0.06)",
+                "&:hover": { bgcolor: isDark ? "rgba(96,165,250,0.16)" : "rgba(59,130,246,0.12)" },
+              }}
+            >
+              <EditOutlinedIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={remove}
+              sx={{
+                width: 34, height: 34, borderRadius: "8px",
+                color: isDark ? "#f87171" : "#dc2626",
+                bgcolor: isDark ? "rgba(248,113,113,0.08)" : "rgba(220,38,38,0.06)",
+                "&:hover": { bgcolor: isDark ? "rgba(248,113,113,0.16)" : "rgba(220,38,38,0.12)" },
+              }}
+            >
+              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </>
+        )}
       </Box>
-    </Fade>
+    </Box>
   );
 };
 

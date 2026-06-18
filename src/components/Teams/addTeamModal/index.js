@@ -1,14 +1,6 @@
 import {
-  Modal,
-  Button,
-  Box,
-  Typography,
-  IconButton,
-  TextField,
-  Rating,
-  Alert,
-  Stack,
-  Backdrop,
+  Modal, Backdrop, Box, Typography, TextField,
+  Button, IconButton, Rating, Stack,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SaveIcon from "@mui/icons-material/Save";
@@ -17,348 +9,222 @@ import { TeamsContext } from "../../../context/TeamsContext";
 
 const AddTeamModal = ({ open, onClose, selectedTeamId, mode }) => {
   const { teams, setTeams } = useContext(TeamsContext);
-  const [team, setTeam] = useState({
-    name: "",
-    ranking: 0,
-    image: "",
-  });
+  const [form, setForm] = useState({ name: "", ranking: 0, image: "" });
+  const [preview, setPreview] = useState("");
   const [error, setError] = useState(false);
-  const [previewImage, setPreviewImage] = useState("");
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: { xs: "90vw", sm: "90%", md: "100%" },
-    maxWidth: { xs: "90vw", sm: 500, md: 500 },
-    borderRadius: "1.5rem",
-    boxShadow:
-      mode === "dark"
-        ? "0 20px 60px rgba(139, 92, 246, 0.3)"
-        : "0 20px 60px rgba(99, 102, 241, 0.2)",
-    p: { xs: 2.5, sm: 4 },
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    maxHeight: { xs: "90vh", sm: "90vh" },
-    overflowY: "auto",
-    background:
-      mode === "dark" ? "rgba(17, 17, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
-    backdropFilter: "blur(20px)",
-    border: `2px solid ${
-      mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(99, 102, 241, 0.2)"
-    }`,
-    "&::-webkit-scrollbar": {
-      width: "0.5em",
-    },
-    "&::-webkit-scrollbar-track": {
-      backgroundColor: "rgba(0, 0, 0, 0.05)",
-      borderRadius: "1em",
-    },
-    "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(99, 102, 241, 0.3)",
-      borderRadius: "1em",
-      "&:hover": {
-        backgroundColor: "rgba(99, 102, 241, 0.5)",
-      },
-    },
-  };
+  const isDark = mode === "dark";
 
   useEffect(() => {
     if (selectedTeamId) {
-      const selectedTeam = teams.find((t) => t.id === selectedTeamId);
-      if (selectedTeam) {
-        setTeam(selectedTeam);
-        setPreviewImage(selectedTeam.image);
-      }
+      const t = teams.find((x) => x.id === selectedTeamId);
+      if (t) { setForm(t); setPreview(t.image || ""); }
     } else {
-      setTeam({ name: "", ranking: 0, image: "" });
-      setPreviewImage("");
+      setForm({ name: "", ranking: 0, image: "" });
+      setPreview("");
     }
   }, [teams, selectedTeamId]);
 
+  const handleClose_ = () => { setError(false); onClose(); };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTeam({ ...team, [name]: value });
-    if (name === "image") {
-      setPreviewImage(value);
-    }
+    setForm((f) => ({ ...f, [name]: value }));
+    if (name === "image") setPreview(value);
   };
 
-  const handleRatingChange = (e, newValue) => {
-    setTeam({ ...team, ranking: newValue });
-  };
-
-  const onSubmit = () => {
-    if (team.name.trim() === "") {
-      setError(true);
-      return;
-    }
-
-    const imageSource = team.image ? "custom" : team.imageSource;
-
+  const submit = () => {
+    if (!form.name.trim()) { setError(true); return; }
+    const imageSource = form.image ? "custom" : form.imageSource;
     if (selectedTeamId) {
-      const updatedTeam = teams.map((t) =>
-        t.id === selectedTeamId ? { ...t, ...team, imageSource } : t,
-      );
-      setTeams(updatedTeam);
+      setTeams((prev) => prev.map((t) => t.id === selectedTeamId ? { ...t, ...form, imageSource } : t));
     } else {
-      setTeams([
-        ...teams,
-        {
-          ...team,
-          imageSource,
-          id: new Date().getTime(),
-        },
-      ]);
+      setTeams((prev) => [...prev, { ...form, imageSource, id: Date.now() }]);
     }
     setError(false);
     onClose();
-    setTeam({ name: "", ranking: 0, image: "" });
-    setPreviewImage("");
+    setForm({ name: "", ranking: 0, image: "" });
+    setPreview("");
+  };
+
+  const inputSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "10px",
+      fontFamily: "'Barlow', sans-serif",
+      fontWeight: 500,
+      fontSize: "1rem",
+      color: isDark ? "#f0f6ff" : "#0f172a",
+      "& fieldset": { borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" },
+      "&:hover fieldset": { borderColor: isDark ? "rgba(34,197,94,0.4)" : "rgba(22,163,74,0.35)" },
+      "&.Mui-focused fieldset": { borderColor: isDark ? "#22c55e" : "#16a34a" },
+    },
+    "& .MuiInputLabel-root.Mui-focused": { color: isDark ? "#22c55e" : "#16a34a" },
   };
 
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={handleClose_}
       closeAfterTransition
       BackdropComponent={Backdrop}
-      BackdropProps={{
-        timeout: 500,
-        sx: { backdropFilter: "blur(6px)" },
-      }}
+      BackdropProps={{ timeout: 300, sx: { backdropFilter: "blur(4px)", bgcolor: "rgba(0,0,0,0.6)" } }}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center", px: { xs: 2, sm: 0 } }}
     >
-      <Box sx={style}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 700, color: "text.primary" }}
-          >
-            {selectedTeamId ? "✏️ Edit Team" : "➕ Add New Team"}
-          </Typography>
+      <Box
+        sx={{
+          outline: "none",
+          width: { xs: "100%", sm: 440 },
+          maxHeight: { xs: "88vh", sm: "90vh" },
+          overflowY: "auto",
+          bgcolor: isDark ? "#0d1a2b" : "#ffffff",
+          borderRadius: "16px",
+          border: `1.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`,
+          boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.6)" : "0 24px 60px rgba(0,0,0,0.12)",
+          p: { xs: 3, sm: 4 },
+          animation: "pop 0.25s ease both",
+          "&::-webkit-scrollbar": { width: "4px" },
+          "&::-webkit-scrollbar-thumb": { bgcolor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)", borderRadius: "2px" },
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 800,
+                fontSize: "1.4rem",
+                color: isDark ? "#f0f6ff" : "#0f172a",
+                lineHeight: 1.2,
+              }}
+            >
+              {selectedTeamId ? "✏️ Edit Club" : "🏟️ Add New Club"}
+            </Typography>
+            <Typography variant="caption" sx={{ color: isDark ? "#64748b" : "#9ca3af", display: "block", mt: 0.5 }}>
+              {selectedTeamId ? "Update club details" : "Register a new club"}
+            </Typography>
+          </Box>
           <IconButton
-            onClick={onClose}
             size="small"
+            onClick={handleClose_}
             sx={{
-              color: "text.secondary",
-              "&:hover": {
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(255, 255, 255, 0.08)"
-                    : "rgba(0, 0, 0, 0.05)",
-              },
+              borderRadius: "8px",
+              color: isDark ? "#64748b" : "#9ca3af",
+              "&:hover": { bgcolor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" },
             }}
           >
-            <CloseIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
         <Stack spacing={2.5}>
           <TextField
             fullWidth
-            label="Team Name"
-            placeholder="e.g., Dragons, Tigers, Phoenix"
-            variant="outlined"
+            label="Club name"
+            placeholder="e.g., Manchester City, Al-Hilal"
             name="name"
-            value={team.name}
+            value={form.name}
             onChange={handleChange}
-            error={error && team.name.trim() === ""}
-            helperText={
-              error && team.name.trim() === "" ? "Team name is required" : ""
-            }
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "0.75rem",
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(139, 92, 246, 0.05)"
-                    : "rgba(255, 255, 255, 0.8)",
-                "& fieldset": {
-                  borderColor:
-                    mode === "dark"
-                      ? "rgba(139, 92, 246, 0.3)"
-                      : "rgba(99, 102, 241, 0.2)",
-                },
-                "&:hover fieldset": {
-                  borderColor:
-                    mode === "dark"
-                      ? "rgba(139, 92, 246, 0.5)"
-                      : "rgba(99, 102, 241, 0.4)",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
-                },
-              },
-              "& .MuiOutlinedInput-input": {
-                color: "text.primary",
-              },
-              "& .MuiInputLabel-root": {
-                color: "text.secondary",
-              },
-            }}
+            error={error && !form.name.trim()}
+            helperText={error && !form.name.trim() ? "Club name is required" : ""}
+            sx={inputSx}
           />
 
           <TextField
             fullWidth
-            label="Team Image URL"
-            placeholder="https://example.com/image.png"
-            variant="outlined"
+            label="Badge image URL (optional)"
+            placeholder="https://example.com/badge.png"
             name="image"
-            value={team.image}
+            value={form.image}
             onChange={handleChange}
-            helperText="Paste the URL of your team's logo or image"
+            helperText="Leave blank to use club initials"
             sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "0.75rem",
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(139, 92, 246, 0.05)"
-                    : "rgba(255, 255, 255, 0.8)",
-                "& fieldset": {
-                  borderColor:
-                    mode === "dark"
-                      ? "rgba(139, 92, 246, 0.3)"
-                      : "rgba(99, 102, 241, 0.2)",
-                },
-                "&:hover fieldset": {
-                  borderColor:
-                    mode === "dark"
-                      ? "rgba(139, 92, 246, 0.5)"
-                      : "rgba(99, 102, 241, 0.4)",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
-                },
-              },
-              "& .MuiOutlinedInput-input": {
-                color: "text.primary",
-              },
-              "& .MuiInputLabel-root": {
-                color: "text.secondary",
-              },
+              ...inputSx,
+              "& .MuiFormHelperText-root": { color: isDark ? "#475569" : "#9ca3af", fontSize: "0.78rem" },
             }}
           />
 
-          {previewImage && (
+          {preview && (
             <Box
               sx={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 gap: 1,
-                p: 2,
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(139, 92, 246, 0.08)"
-                    : "rgba(99, 102, 241, 0.05)",
-                borderRadius: "0.75rem",
-                border: `2px dashed ${
-                  mode === "dark"
-                    ? "rgba(139, 92, 246, 0.3)"
-                    : "rgba(99, 102, 241, 0.3)"
-                }`,
+                py: 2,
+                borderRadius: "10px",
+                bgcolor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                border: `1px dashed ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
               }}
             >
-              <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                Preview
+              <Typography variant="caption" sx={{ color: isDark ? "#64748b" : "#9ca3af", fontWeight: 600 }}>
+                Badge preview
               </Typography>
               <Box
                 component="img"
-                src={previewImage}
-                onError={() => setPreviewImage("")}
-                alt="Team preview"
-                sx={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: `3px solid ${
-                    mode === "dark" ? "rgba(255, 255, 255, 0.8)" : "white"
-                  }`,
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                }}
+                src={preview}
+                onError={() => setPreview("")}
+                alt="Club badge"
+                sx={{ width: 72, height: 72, borderRadius: "10px", objectFit: "cover", border: `2px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}` }}
               />
             </Box>
           )}
 
+          {/* Star rating */}
           <Box>
             <Typography
-              variant="subtitle2"
-              sx={{ mb: 1.5, fontWeight: 600, color: "text.primary" }}
+              variant="caption"
+              sx={{ fontWeight: 600, color: isDark ? "#64748b" : "#9ca3af", display: "block", mb: 1 }}
             >
-              Team Rating ⭐
+              Club rating
             </Typography>
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               <Rating
                 name="ranking"
-                value={team.ranking}
-                onChange={(e, newValue) => handleRatingChange(e, newValue)}
+                value={form.ranking}
+                onChange={(_, v) => setForm((f) => ({ ...f, ranking: v }))}
                 size="large"
+                sx={{
+                  "& .MuiRating-iconFilled": { color: "#fbbf24" },
+                  "& .MuiRating-iconEmpty": { color: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)" },
+                  "& .MuiRating-icon": { fontSize: "2rem" },
+                }}
               />
             </Box>
           </Box>
-
-          {error && team.name.trim() === "" && (
-            <Alert
-              severity="error"
-              sx={{
-                borderRadius: "0.75rem",
-                background:
-                  mode === "dark"
-                    ? "rgba(239, 68, 68, 0.15)"
-                    : "rgba(239, 68, 68, 0.08)",
-                border: `1px solid ${
-                  mode === "dark"
-                    ? "rgba(239, 68, 68, 0.4)"
-                    : "rgba(239, 68, 68, 0.2)"
-                }`,
-              }}
-            >
-              <Typography variant="body2">
-                Please enter a valid team name
-              </Typography>
-            </Alert>
-          )}
         </Stack>
 
-        <Button
-          fullWidth
-          variant="contained"
-          color="secondary"
-          startIcon={<SaveIcon />}
-          onClick={onSubmit}
-          sx={{
-            borderRadius: "0.75rem",
-            py: 1.25,
-            fontWeight: 700,
-            mt: 2,
-            background:
-              mode === "dark"
-                ? "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)"
-                : "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
-            boxShadow:
-              mode === "dark"
-                ? "0 8px 24px rgba(139, 92, 246, 0.4)"
-                : "0 6px 20px rgba(99, 102, 241, 0.3)",
-            "&:hover": {
-              transform: "translateY(-2px)",
-              boxShadow:
-                mode === "dark"
-                  ? "0 12px 32px rgba(139, 92, 246, 0.5)"
-                  : "0 10px 28px rgba(99, 102, 241, 0.4)",
-            },
-          }}
-        >
-          {selectedTeamId ? "Update Team" : "Add Team"}
-        </Button>
+        <Box sx={{ display: "flex", gap: 1.5, mt: 3 }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleClose_}
+            sx={{
+              borderRadius: "10px",
+              py: 1.4,
+              color: isDark ? "#64748b" : "#6b7280",
+              borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+              "&:hover": { bgcolor: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", borderColor: isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.18)" },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<SaveIcon />}
+            onClick={submit}
+            sx={{
+              borderRadius: "10px",
+              py: 1.4,
+              bgcolor: isDark ? "#22c55e" : "#16a34a",
+              color: "#fff",
+              fontWeight: 700,
+              "&:hover": { bgcolor: isDark ? "#16a34a" : "#15803d" },
+            }}
+          >
+            {selectedTeamId ? "Save Changes" : "Add Club"}
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );

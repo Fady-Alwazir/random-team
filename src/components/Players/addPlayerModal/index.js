@@ -1,265 +1,174 @@
 import {
   Modal,
-  Button,
+  Backdrop,
   Box,
   Typography,
   TextField,
-  Alert,
+  Button,
   IconButton,
-  Backdrop,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import { useContext, useState } from "react";
 import { TeamsContext } from "../../../context/TeamsContext";
-import CloseIcon from "@mui/icons-material/Close";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
 const AddPlayerModal = ({ open, handleClose, mode }) => {
   const { setPlayers } = useContext(TeamsContext);
-  const [player, setPlayer] = useState("");
+  const [input, setInput] = useState("");
   const [error, setError] = useState(false);
+  const isDark = mode === "dark";
 
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: { xs: "90vw", sm: "90%", md: "100%" },
-    maxWidth: { xs: "90vw", sm: 450, md: 450 },
-    borderRadius: "1.5rem",
-    boxShadow:
-      mode === "dark"
-        ? "0 20px 60px rgba(139, 92, 246, 0.3)"
-        : "0 20px 60px rgba(99, 102, 241, 0.2)",
-    p: { xs: 2.5, sm: 4 },
-    display: "flex",
-    flexDirection: "column",
-    gap: 2.5,
-    maxHeight: { xs: "90vh", sm: "90vh" },
-    overflowY: "auto",
-    background:
-      mode === "dark" ? "rgba(17, 17, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
-    backdropFilter: "blur(20px)",
-    border: `2px solid ${
-      mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(99, 102, 241, 0.2)"
-    }`,
-  };
+  const handleAdd = () => {
+    if (!input.trim()) { setError(true); return; }
 
-  const handleInputChange = (e) => {
-    setPlayer(e.target.value);
+    const names = input.split(",").map((n) => n.trim()).filter(Boolean);
+    names.forEach((name, i) => {
+      setPlayers((prev) => [...prev, { name, id: Date.now() + i }]);
+    });
+
+    setInput("");
     setError(false);
-  };
-
-  const handleAddPlayer = () => {
-    if (!player || player.trim() === "") {
-      setError(true);
-      return;
-    }
-
-    // Check if input contains commas - add multiple players
-    if (player.includes(",")) {
-      const playerNames = player
-        .split(",")
-        .map((name) => name.trim())
-        .filter((name) => name);
-
-      playerNames.forEach((name, index) => {
-        setPlayers((players) => [
-          ...players,
-          {
-            name: name,
-            id: new Date().getTime() + index,
-          },
-        ]);
-      });
-    } else {
-      // Add single player
-      setPlayers((players) => [
-        ...players,
-        {
-          name: player.trim(),
-          id: new Date().getTime(),
-        },
-      ]);
-    }
-
-    setError(false);
-    setPlayer("");
     handleClose();
-  };;
+  };
+
+  const handleClose_ = () => {
+    setInput("");
+    setError(false);
+    handleClose();
+  };
 
   return (
     <Modal
       open={open}
-      onClose={handleClose}
+      onClose={handleClose_}
       closeAfterTransition
       BackdropComponent={Backdrop}
-      BackdropProps={{
-        timeout: 500,
-        sx: { backdropFilter: "blur(4px)" },
-      }}
+      BackdropProps={{ timeout: 300, sx: { backdropFilter: "blur(4px)", bgcolor: "rgba(0,0,0,0.6)" } }}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center", px: { xs: 2, sm: 0 } }}
     >
-      <Box sx={style}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+      <Box
+        sx={{
+          outline: "none",
+          width: { xs: "100%", sm: 420 },
+          bgcolor: isDark ? "#0d1a2b" : "#ffffff",
+          borderRadius: "16px",
+          border: `1.5px solid ${isDark ? "rgba(34,197,94,0.2)" : "rgba(22,163,74,0.15)"}`,
+          boxShadow: isDark
+            ? "0 24px 60px rgba(0,0,0,0.6)"
+            : "0 24px 60px rgba(0,0,0,0.12)",
+          p: { xs: 3, sm: 4 },
+          animation: "pop 0.25s ease both",
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
           <Box>
             <Typography
-              variant="h5"
-              sx={{ fontWeight: 800, mb: 0.5, color: "text.primary" }}
+              sx={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 800,
+                fontSize: "1.4rem",
+                color: isDark ? "#f0f6ff" : "#0f172a",
+                lineHeight: 1.2,
+              }}
             >
-              ➕ Add New Player
+              ✍️ Sign New Player
             </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              Build your team roster
+            <Typography variant="caption" sx={{ color: isDark ? "#64748b" : "#9ca3af", mt: 0.5, display: "block" }}>
+              Add one or multiple players at once
             </Typography>
           </Box>
           <IconButton
-            onClick={handleClose}
+            onClick={handleClose_}
             size="small"
             sx={{
-              color: "text.secondary",
-              backgroundColor: "rgba(99, 102, 241, 0.05)",
-              "&:hover": {
-                backgroundColor: "rgba(99, 102, 241, 0.1)",
-                transform: "rotate(90deg)",
-              },
-              transition: "all 0.3s ease",
+              borderRadius: "8px",
+              color: isDark ? "#64748b" : "#9ca3af",
+              "&:hover": { bgcolor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" },
             }}
           >
-            <CloseIcon />
+            <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Alert
-          severity="info"
+        {/* Tip */}
+        <Box
           sx={{
-            borderRadius: "0.75rem",
-            background:
-              "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)",
-            border: "1px solid rgba(99, 102, 241, 0.2)",
-            color: "text.primary",
-            "& .MuiAlert-icon": {
-              color: "primary.main",
-            },
+            px: 2,
+            py: 1.5,
+            mb: 2.5,
+            borderRadius: "8px",
+            bgcolor: isDark ? "rgba(96,165,250,0.08)" : "rgba(59,130,246,0.06)",
+            border: `1px solid ${isDark ? "rgba(96,165,250,0.15)" : "rgba(59,130,246,0.12)"}`,
           }}
         >
-          <Typography variant="body2">
-            <strong>💡 Tip:</strong> Add one player or multiple at once!
-            Separate names with a comma
+          <Typography variant="body2" sx={{ color: isDark ? "#93c5fd" : "#3b82f6", fontSize: "0.85rem", fontWeight: 500 }}>
+            💡 Separate names with a comma to sign multiple players — e.g.{" "}
+            <em>Messi, Ronaldo, Neymar</em>
           </Typography>
-        </Alert>
+        </Box>
 
+        {/* Input */}
         <TextField
           fullWidth
-          label="Player Name(s)"
-          placeholder="e.g., John Doe or John, Sarah, Mike"
+          label="Player name(s)"
+          placeholder="e.g., John or John, Sarah, Alex"
           variant="outlined"
-          value={player}
-          onChange={handleInputChange}
-          onKeyPress={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleAddPlayer();
-            }
-          }}
+          value={input}
+          onChange={(e) => { setInput(e.target.value); setError(false); }}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAdd(); } }}
           error={error}
+          helperText={error ? "Please enter at least one name" : ""}
           multiline
           minRows={2}
           maxRows={4}
           sx={{
+            mb: 3,
             "& .MuiOutlinedInput-root": {
-              borderRadius: "0.75rem",
-              transition: "all 0.3s ease",
-              backgroundColor:
-                mode === "dark"
-                  ? "rgba(139, 92, 246, 0.05)"
-                  : "rgba(255, 255, 255, 0.8)",
-              "& fieldset": {
-                borderColor:
-                  mode === "dark"
-                    ? "rgba(139, 92, 246, 0.3)"
-                    : "rgba(99, 102, 241, 0.2)",
-              },
-              "&:hover fieldset": {
-                borderColor:
-                  mode === "dark"
-                    ? "rgba(139, 92, 246, 0.5)"
-                    : "rgba(99, 102, 241, 0.4)",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: mode === "dark" ? "#8b5cf6" : "#6366f1",
-              },
-            },
-            "& .MuiOutlinedInput-input": {
+              borderRadius: "10px",
+              fontFamily: "'Barlow', sans-serif",
               fontWeight: 500,
-              color: "text.primary",
+              fontSize: "1rem",
+              color: isDark ? "#f0f6ff" : "#0f172a",
+              "& fieldset": { borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" },
+              "&:hover fieldset": { borderColor: isDark ? "rgba(34,197,94,0.4)" : "rgba(22,163,74,0.35)" },
+              "&.Mui-focused fieldset": { borderColor: isDark ? "#22c55e" : "#16a34a" },
             },
-            "& .MuiInputLabel-root": {
-              color: "text.secondary",
-            },
+            "& .MuiInputLabel-root.Mui-focused": { color: isDark ? "#22c55e" : "#16a34a" },
           }}
         />
 
-        {error && (
-          <Alert
-            severity="error"
-            sx={{
-              borderRadius: "0.75rem",
-              background: "rgba(239, 68, 68, 0.08)",
-              border: "1px solid rgba(239, 68, 68, 0.2)",
-            }}
-          >
-            <Typography variant="body2">
-              Please enter a valid player name
-            </Typography>
-          </Alert>
-        )}
-
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1.5,
-            justifyContent: "flex-end",
-            mt: 1,
-          }}
-        >
+        {/* Actions */}
+        <Box sx={{ display: "flex", gap: 1.5 }}>
           <Button
+            fullWidth
             variant="outlined"
-            color="inherit"
-            onClick={handleClose}
+            onClick={handleClose_}
             sx={{
-              borderRadius: "0.75rem",
-              border: "1.5px solid rgba(99, 102, 241, 0.2)",
-              fontWeight: 600,
-              "&:hover": {
-                border: "1.5px solid rgba(99, 102, 241, 0.4)",
-                backgroundColor: "rgba(99, 102, 241, 0.05)",
-              },
+              borderRadius: "10px",
+              py: 1.4,
+              color: isDark ? "#64748b" : "#6b7280",
+              borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+              "&:hover": { bgcolor: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", borderColor: isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.18)" },
             }}
           >
             Cancel
           </Button>
           <Button
+            fullWidth
             variant="contained"
-            color="primary"
-            startIcon={<PersonAddIcon />}
-            onClick={handleAddPlayer}
+            startIcon={<PersonAddAlt1Icon />}
+            onClick={handleAdd}
             sx={{
-              borderRadius: "0.75rem",
+              borderRadius: "10px",
+              py: 1.4,
+              bgcolor: isDark ? "#22c55e" : "#16a34a",
+              color: "#fff",
               fontWeight: 700,
-              boxShadow: "0 4px 15px rgba(99, 102, 241, 0.3)",
-              "&:hover": {
-                boxShadow: "0 6px 20px rgba(99, 102, 241, 0.4)",
-                transform: "translateY(-2px)",
-              },
-              transition: "all 0.3s ease",
+              "&:hover": { bgcolor: isDark ? "#16a34a" : "#15803d" },
             }}
           >
-            Add Player
+            Sign Player
           </Button>
         </Box>
       </Box>

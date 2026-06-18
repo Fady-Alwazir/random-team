@@ -4,12 +4,15 @@ import App from "./App";
 import "./index.modue.css";
 import reportWebVitals from "./reportWebVitals";
 import { TeamsProvider } from "./context/TeamsContext";
+import { MatchHistoryProvider } from "./context/MatchHistoryContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <TeamsProvider>
-      <App />
+      <MatchHistoryProvider>
+        <App />
+      </MatchHistoryProvider>
     </TeamsProvider>
   </React.StrictMode>
 );

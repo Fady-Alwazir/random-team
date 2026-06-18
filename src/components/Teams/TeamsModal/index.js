@@ -1,11 +1,5 @@
 import {
-  Modal,
-  Button,
-  Box,
-  Typography,
-  IconButton,
-  Alert,
-  Backdrop,
+  Modal, Backdrop, Box, Typography, IconButton, Button,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
@@ -15,85 +9,21 @@ import TeamCard from "./teamCard";
 
 const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId, mode }) => {
   const { teams, setTeams } = useContext(TeamsContext);
+  const isDark = mode === "dark";
 
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: { xs: "90vw", sm: "95%", md: "100%" },
-    maxWidth: { xs: "90vw", sm: 900, md: 1000 },
-    maxHeight: { xs: "90vh", sm: "90vh" },
-    borderRadius: "1.5rem",
-    boxShadow:
-      mode === "dark"
-        ? "0 20px 60px rgba(6, 182, 212, 0.3)"
-        : "0 20px 60px rgba(139, 92, 246, 0.2)",
-    p: { xs: 2, sm: 3, md: 4 },
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    overflowY: "auto",
-    background:
-      mode === "dark" ? "rgba(17, 17, 27, 0.95)" : "rgba(255, 255, 255, 0.95)",
-    backdropFilter: "blur(20px)",
-    border: `2px solid ${
-      mode === "dark" ? "rgba(6, 182, 212, 0.3)" : "rgba(139, 92, 246, 0.2)"
-    }`,
-    "&::-webkit-scrollbar": {
-      width: "0.5em",
-    },
-    "&::-webkit-scrollbar-track": {
-      backgroundColor: "rgba(0, 0, 0, 0.05)",
-      borderRadius: "1em",
-    },
-    "&::-webkit-scrollbar-thumb": {
-      backgroundColor: "rgba(99, 102, 241, 0.3)",
-      borderRadius: "1em",
-      "&:hover": {
-        backgroundColor: "rgba(99, 102, 241, 0.5)",
-      },
-    },
-  };
+  useEffect(() => { setSelectedTeamId(null); }, [setSelectedTeamId]);
 
   useEffect(() => {
-    setSelectedTeamId(null);
-  }, [setSelectedTeamId]);
-
-  // Load cached team images when modal opens
-  useEffect(() => {
-    if (!open || !teams || teams.length === 0) return;
-
-    const imageCacheKey = "teamImageCache";
-
-    const getImageCache = () => {
-      try {
-        const cache = JSON.parse(localStorage.getItem(imageCacheKey));
-        return cache && typeof cache === "object" ? cache : {};
-      } catch (error) {
-        return {};
-      }
-    };
-
-    const cache = getImageCache();
-    let hasUpdates = false;
-
-    const updatedTeams = teams.map((team) => {
-      const cached = cache[team.id];
-      if (
-        cached?.image &&
-        cached?.source === "sportsdb" &&
-        team.image !== cached.image
-      ) {
-        hasUpdates = true;
-        return { ...team, image: cached.image, imageSource: "sportsdb" };
-      }
-      return team;
+    if (!open || !teams?.length) return;
+    const key = "teamImageCache";
+    const cache = (() => { try { const c = JSON.parse(localStorage.getItem(key)); return c && typeof c === "object" ? c : {}; } catch { return {}; } })();
+    let changed = false;
+    const updated = teams.map((t) => {
+      const c = cache[t.id];
+      if (c?.image && c?.source === "sportsdb" && t.image !== c.image) { changed = true; return { ...t, image: c.image, imageSource: "sportsdb" }; }
+      return t;
     });
-
-    if (hasUpdates) {
-      setTeams(updatedTeams);
-    }
+    if (changed) setTeams(updated);
   }, [open, teams, setTeams]);
 
   return (
@@ -102,62 +32,81 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId, mode }) => 
       onClose={onClose}
       closeAfterTransition
       BackdropComponent={Backdrop}
-      BackdropProps={{
-        timeout: 500,
-        sx: { backdropFilter: "blur(6px)" },
-      }}
+      BackdropProps={{ timeout: 300, sx: { backdropFilter: "blur(4px)", bgcolor: "rgba(0,0,0,0.6)" } }}
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center", px: { xs: 1.5, sm: 2 } }}
     >
-      <Box sx={style}>
+      <Box
+        sx={{
+          outline: "none",
+          width: { xs: "100%", sm: "90vw", md: 820 },
+          maxHeight: { xs: "88vh", sm: "85vh" },
+          bgcolor: isDark ? "#0d1a2b" : "#ffffff",
+          borderRadius: "16px",
+          border: `1.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`,
+          boxShadow: isDark ? "0 24px 60px rgba(0,0,0,0.6)" : "0 24px 60px rgba(0,0,0,0.12)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          animation: "pop 0.25s ease both",
+        }}
+      >
+        {/* Header */}
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 1,
+            px: { xs: 2.5, sm: 3 },
+            py: 2.5,
+            borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+            flexShrink: 0,
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            🏆 All Teams
-          </Typography>
+          <Box>
+            <Typography
+              sx={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 800,
+                fontSize: "1.4rem",
+                color: isDark ? "#f0f6ff" : "#0f172a",
+              }}
+            >
+              🏆 All Clubs
+            </Typography>
+            <Typography variant="caption" sx={{ color: isDark ? "#64748b" : "#9ca3af" }}>
+              {teams?.length
+                ? `${teams.length} club${teams.length !== 1 ? "s" : ""} registered`
+                : "No clubs added yet"}
+            </Typography>
+          </Box>
           <IconButton
             onClick={onClose}
             size="small"
             sx={{
-              color: "text.secondary",
-              "&:hover": {
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(255, 255, 255, 0.08)"
-                    : "rgba(0, 0, 0, 0.05)",
-              },
+              borderRadius: "8px",
+              color: isDark ? "#64748b" : "#9ca3af",
+              "&:hover": { bgcolor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" },
             }}
           >
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-          {teams?.length === 0
-            ? "No teams added yet. Create one to get started!"
-            : `Showing ${teams?.length} team${teams?.length !== 1 ? "s" : ""}`}
-        </Typography>
-
-        {teams?.length > 0 ? (
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(auto-fill, minmax(160px, 1fr))",
-                sm: "repeat(auto-fill, minmax(200px, 1fr))",
-                md: "repeat(auto-fill, minmax(220px, 1fr))",
-              },
-              gap: 2,
-              mb: 3,
-            }}
-          >
-            {teams
-              ?.sort((a, b) => b.ranking - a.ranking)
-              .map((team) => (
+        {/* Grid */}
+        <Box sx={{ flex: 1, overflowY: "auto", px: { xs: 2, sm: 3 }, py: 2.5 }}>
+          {teams?.length > 0 ? (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "repeat(2, 1fr)",
+                  sm: "repeat(3, 1fr)",
+                  md: "repeat(4, 1fr)",
+                },
+                gap: { xs: 1.5, sm: 2 },
+              }}
+            >
+              {[...teams].sort((a, b) => b.ranking - a.ranking).map((team) => (
                 <TeamCard
                   key={team.id}
                   team={team}
@@ -166,62 +115,49 @@ const TeamsModal = ({ open, onClose, showAddTeam, setSelectedTeamId, mode }) => 
                   mode={mode}
                 />
               ))}
-          </Box>
-        ) : (
-          <Alert
-            severity="info"
-            sx={{
-              borderRadius: "0.75rem",
-              mb: 2,
-              background:
-                mode === "dark"
-                  ? "rgba(6, 182, 212, 0.15)"
-                  : "rgba(99, 102, 241, 0.1)",
-              border: `1px solid ${
-                mode === "dark"
-                  ? "rgba(6, 182, 212, 0.35)"
-                  : "rgba(99, 102, 241, 0.2)"
-              }`,
-            }}
-          >
-            <Typography variant="body2">
-              Create your first team to start building team pairs!
-            </Typography>
-          </Alert>
-        )}
+            </Box>
+          ) : (
+            <Box sx={{ py: 6, textAlign: "center" }}>
+              <Typography sx={{ fontSize: "2.5rem", mb: 1 }}>⚽</Typography>
+              <Typography sx={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: "1.1rem", color: isDark ? "#64748b" : "#9ca3af" }}>
+                No clubs yet
+              </Typography>
+              <Typography variant="caption" sx={{ color: isDark ? "#475569" : "#9ca3af" }}>
+                Add your first club below
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
-        <Button
-          variant="contained"
-          color="secondary"
-          startIcon={<AddIcon />}
-          onClick={showAddTeam}
-          fullWidth
+        {/* Footer */}
+        <Box
           sx={{
-            borderRadius: "0.75rem",
-            py: 1.25,
-            fontWeight: 700,
-            background:
-              mode === "dark"
-                ? "linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)"
-                : "linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)",
-            boxShadow:
-              mode === "dark"
-                ? "0 8px 24px rgba(6, 182, 212, 0.4)"
-                : "0 6px 20px rgba(139, 92, 246, 0.3)",
-            "&:hover": {
-              transform: "translateY(-2px)",
-              boxShadow:
-                mode === "dark"
-                  ? "0 12px 32px rgba(6, 182, 212, 0.5)"
-                  : "0 10px 28px rgba(139, 92, 246, 0.4)",
-            },
+            px: { xs: 2.5, sm: 3 },
+            py: 2,
+            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+            flexShrink: 0,
           }}
         >
-          Add New Team
-        </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={showAddTeam}
+            sx={{
+              borderRadius: "10px",
+              py: 1.5,
+              bgcolor: isDark ? "#22c55e" : "#16a34a",
+              color: "#fff",
+              fontWeight: 700,
+              "&:hover": { bgcolor: isDark ? "#16a34a" : "#15803d" },
+            }}
+          >
+            Add New Club
+          </Button>
+        </Box>
       </Box>
     </Modal>
   );
-};;
+};
 
 export default TeamsModal;

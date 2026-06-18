@@ -1,423 +1,309 @@
-import {
-  Box,
-  InputLabel,
-  MenuItem,
-  Select,
-  Card,
-  CardContent,
-  FormControl,
-  Fade,
-} from "@mui/material";
-import React, { useContext, useState, useRef } from "react";
+import { Box, FormControl, InputLabel, MenuItem, Select, Button, Typography } from "@mui/material";
+import { useContext, useState, useRef } from "react";
 import { TeamsContext } from "../../context/TeamsContext";
-import ShuffleIcon from "@mui/icons-material/Shuffle";
-import Button from "@mui/material/Button";
+import { useMatchHistory } from "../../context/MatchHistoryContext";
+import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";
+import HistoryIcon from "@mui/icons-material/History";
 import PairsSection from "./PairsSection";
+import ScoreEntryModal from "./ScoreEntryModal";
+import SaveResultsDialog from "./SaveResultsDialog";
+import MatchHistoryModal from "../MatchHistory";
 import { shuffle } from "../../functions";
-import Typography from "@mui/material/Typography";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 const FormSubmit = ({ mode }) => {
   const [rank, setRank] = useState(5);
   const { players, teams, setSelectedTeams } = useContext(TeamsContext);
-  const [randomPairs, setRandomPairs] = useState([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [hasPairs, setHasPairs] = useState(false);
-  const pairsSectionRef = useRef(null);
+  const { saveSession } = useMatchHistory();
 
-  const handleRankChange = (e) => {
-    setRank(e.target.value);
-  };
+  // matches: [{ id, teamA: {team, player1, player2}, teamB: {team, player1, player2} | null }]
+  const [matches, setMatches] = useState([]);
+  // scores: { [matchId]: { scoreA, scoreB, opponent } }
+  const [scores, setScores] = useState({});
 
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [scoreModal, setScoreModal] = useState({ open: false, matchId: null });
+
+  const pairsRef = useRef(null);
+  const isDark = mode === "dark";
+
+  /* ── image fetching ──────────────────────────────────────────────────── */
   const imageCacheKey = "teamImageCache";
+  const getCache = () => { try { const c = JSON.parse(localStorage.getItem(imageCacheKey)); return c && typeof c === "object" ? c : {}; } catch { return {}; } };
+  const saveCache = (c) => localStorage.setItem(imageCacheKey, JSON.stringify(c));
 
-  const getImageCache = () => {
-    try {
-      const cache = JSON.parse(localStorage.getItem(imageCacheKey));
-      return cache && typeof cache === "object" ? cache : {};
-    } catch (error) {
-      return {};
-    }
+  const updateImages = async (list) => {
+    const cache = getCache();
+    let changed = false;
+    const updated = await Promise.all(list.map(async (team) => {
+      if (team.imageSource === "custom" && team.image) return team;
+      const cached = cache[team.id];
+      if (cached?.image && cached?.source === "sportsdb") return { ...team, image: cached.image, imageSource: "sportsdb" };
+      try {
+        const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(team.name)}`);
+        const data = await res.json();
+        if (data.teams?.length) {
+          const img = data.teams[0].strBadge || data.teams[0].strTeamBadge || team.image;
+          if (img) { cache[team.id] = { image: img, source: "sportsdb", ts: Date.now() }; changed = true; return { ...team, image: img, imageSource: "sportsdb" }; }
+        }
+        return team;
+      } catch { return team; }
+    }));
+    if (changed) saveCache(cache);
+    return updated;
   };
 
-  const saveImageCache = (cache) => {
-    localStorage.setItem(imageCacheKey, JSON.stringify(cache));
-  };
-
-  // Fetch real football team logos from TheSportsDB API only when needed
-  const updateTeamImages = async (teamsToUpdate) => {
-    const cache = getImageCache();
-    let cacheChanged = false;
-
-    const updatedTeams = await Promise.all(
-      teamsToUpdate.map(async (team) => {
-        // Skip API search if user provided a custom image
-        if (team.imageSource === "custom" && team.image) {
-          return team;
-        }
-
-        // Use cached SportsDB logo if already fetched before
-        const cached = cache[team.id];
-        if (cached?.image && cached?.source === "sportsdb") {
-          return { ...team, image: cached.image, imageSource: "sportsdb" };
-        }
-
-        try {
-          const teamName = encodeURIComponent(team.name);
-          const response = await fetch(
-            `https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${teamName}`,
-          );
-          const data = await response.json();
-
-          if (data.teams && data.teams.length > 0) {
-            const teamData = data.teams[0];
-            const newImage =
-              teamData.strBadge || teamData.strTeamBadge || team.image;
-
-            if (newImage) {
-              cache[team.id] = {
-                image: newImage,
-                source: "sportsdb",
-                ts: Date.now(),
-              };
-              cacheChanged = true;
-              return { ...team, image: newImage, imageSource: "sportsdb" };
-            }
-          }
-
-          return team;
-        } catch (error) {
-          console.error("Failed to fetch team logo:", error);
-          return team;
-        }
-      }),
-    );
-
-    if (cacheChanged) {
-      saveImageCache(cache);
-    }
-
-    return updatedTeams;
-  };
-
-  const handleShuffle = async () => {
-    setIsGenerating(true);
-
-    let filteredTeams;
-    if (rank === "all") {
-      filteredTeams = teams;
-    } else {
-      filteredTeams = teams.filter((team) => team.ranking === rank);
-    }
+  /* ── draw logic ──────────────────────────────────────────────────────── */
+  const executeDraw = () => {
+    setIsDrawing(true);
+    setShowSaveDialog(false);
+    const filtered = rank === "all" ? teams : teams.filter((t) => t.ranking === rank);
+    const ts = Date.now();
 
     setTimeout(() => {
-      const shuffledTeams = shuffle(filteredTeams);
-      const shuffledPlayers = shuffle(players);
+      const sTeams = shuffle(filtered);
+      const sPlayers = shuffle(players);
 
-      const pairs = shuffledTeams.map((team, index) => {
-        const player1 = shuffledPlayers[index * 2];
-        const player2 = shuffledPlayers[index * 2 + 1];
+      const rawPairs = sTeams.map((team, i) => {
+        const p1 = sPlayers[i * 2] || null;
+        const p2 = sPlayers[i * 2 + 1] || null;
+        if (!p1 && !p2) return null;
+        return { team: { name: team.name, image: team.image, ranking: team.ranking, id: team.id }, player1: p1, player2: p2 };
+      }).filter(Boolean);
 
-        if (!player1 && !player2) return null;
-        return {
-          team: {
-            name: team.name,
-            image: team.image,
-            ranking: team.ranking,
-            id: team.id,
-          },
-          player1: player1 || null,
-          player2: player2 || null,
-        };
-      });
-
-      const filteredPairs = pairs.filter((pair) => pair !== null);
-      setRandomPairs(filteredPairs);
-      setSelectedTeams(shuffledTeams);
-      setIsGenerating(false);
-      setHasPairs(true);
-
-      // Fetch images in background after displaying pairs
-      updateTeamImages(shuffledTeams).then((teamsWithNewImages) => {
-        const updatedPairs = filteredPairs.map((pair) => {
-          const updatedTeam = teamsWithNewImages.find(
-            (t) => t.id === pair.team.id,
-          );
-          if (updatedTeam && updatedTeam.image !== pair.team.image) {
-            return {
-              ...pair,
-              team: {
-                ...pair.team,
-                image: updatedTeam.image,
-                imageSource: updatedTeam.imageSource,
-              },
-            };
-          }
-          return pair;
-        });
-
-        const hasChanges = updatedPairs.some(
-          (pair, index) => pair.team.image !== filteredPairs[index]?.team.image,
-        );
-        if (hasChanges) {
-          setRandomPairs(updatedPairs);
-        }
-      });
-    }, 300);
-
-    // Scroll to pairs section after DOM updates
-    setTimeout(() => {
-      if (pairsSectionRef.current) {
-        pairsSectionRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+      const newMatches = [];
+      for (let i = 0; i < rawPairs.length; i += 2) {
+        newMatches.push({ id: `m_${ts}_${i}`, teamA: rawPairs[i], teamB: rawPairs[i + 1] || null });
       }
-    }, 200);
+
+      setMatches(newMatches);
+      setScores({});
+      setSelectedTeams(sTeams);
+      setIsDrawing(false);
+      setHasDrawn(true);
+
+      updateImages(sTeams).then((withImgs) => {
+        setMatches((prev) => prev.map((match) => {
+          const uA = withImgs.find((t) => t.id === match.teamA.team.id);
+          const uB = match.teamB ? withImgs.find((t) => t.id === match.teamB.team.id) : null;
+          return {
+            ...match,
+            teamA: uA && uA.image !== match.teamA.team.image
+              ? { ...match.teamA, team: { ...match.teamA.team, image: uA.image } }
+              : match.teamA,
+            teamB: match.teamB && uB && uB.image !== match.teamB.team.image
+              ? { ...match.teamB, team: { ...match.teamB.team, image: uB.image } }
+              : match.teamB,
+          };
+        }));
+      });
+    }, 350);
+
+    setTimeout(() => pairsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+  };
+
+  const draw = () => {
+    if (hasDrawn && matches.length > 0) {
+      setShowSaveDialog(true);
+    } else {
+      executeDraw();
+    }
+  };
+
+  const handleSaveAndDraw = () => {
+    saveSession(matches, scores);
+    executeDraw();
+  };
+
+  /* ── score entry ─────────────────────────────────────────────────────── */
+  const activeMatch = matches.find((m) => m.id === scoreModal.matchId) || null;
+
+  const handleScoreSave = (matchId, scoreData) => {
+    setScores((prev) => ({ ...prev, [matchId]: scoreData }));
   };
 
   return (
-    <Fade in={true} timeout={1000}>
-      <Card
+    <>
+      <Box
         sx={{
-          mb: { xs: 4, sm: 5, md: 6 },
-          borderRadius: "2rem",
-          background:
-            mode === "dark"
-              ? "rgba(17, 17, 27, 0.7)"
-              : "rgba(255, 255, 255, 0.85)",
-          backdropFilter: "blur(20px)",
-          border: `2px solid ${
-            mode === "dark"
-              ? "rgba(245, 158, 11, 0.2)"
-              : "rgba(245, 158, 11, 0.15)"
-          }`,
-          boxShadow:
-            mode === "dark"
-              ? "0 20px 40px rgba(245, 158, 11, 0.2)"
-              : "0 15px 35px rgba(245, 158, 11, 0.1)",
-          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          position: "relative",
+          borderRadius: "14px",
+          bgcolor: isDark ? "#0d1a2b" : "#ffffff",
+          border: `1.5px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
           overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "3px",
-            background:
-              mode === "dark"
-                ? "linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)"
-                : "linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%)",
-          },
-          "&:hover": {
-            transform: "translateY(-4px)",
-            boxShadow:
-              mode === "dark"
-                ? "0 25px 50px rgba(245, 158, 11, 0.3)"
-                : "0 20px 40px rgba(245, 158, 11, 0.15)",
-          },
+          animation: "fadeUp 0.5s ease 0.3s both",
         }}
       >
-        <CardContent
-          sx={{
-            p: { xs: 3, sm: 4, md: 5 },
-          }}
-        >
-          <Box sx={{ mb: 4, textAlign: "center" }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 800,
-                mb: 1,
-                fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-                background:
-                  mode === "dark"
-                    ? "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)"
-                    : "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              ⚡ Generate Matchups
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: "text.secondary",
-                fontSize: { xs: "0.85rem", sm: "0.9rem" },
-                fontWeight: 500,
-              }}
-            >
-              Create perfectly balanced team pairings with AI precision
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              gap: 3,
-              alignItems: { xs: "stretch", sm: "flex-end" },
-              mb: 4,
-              p: { xs: 3, sm: 3.5 },
-              backgroundColor:
-                mode === "dark"
-                  ? "rgba(245, 158, 11, 0.1)"
-                  : "rgba(245, 158, 11, 0.05)",
-              borderRadius: "1.5rem",
-              border: `2px solid ${
-                mode === "dark"
-                  ? "rgba(245, 158, 11, 0.2)"
-                  : "rgba(245, 158, 11, 0.15)"
-              }`,
-              transition: "all 0.3s ease",
-              "&:hover": {
-                borderColor:
-                  mode === "dark"
-                    ? "rgba(245, 158, 11, 0.3)"
-                    : "rgba(245, 158, 11, 0.25)",
-                backgroundColor:
-                  mode === "dark"
-                    ? "rgba(245, 158, 11, 0.15)"
-                    : "rgba(245, 158, 11, 0.08)",
-              },
-            }}
-          >
-            <FormControl sx={{ minWidth: { xs: "100%", sm: 240 }, flex: 1 }}>
-              <InputLabel
-                id="rank-select-label"
+        <Box sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 2.5, sm: 3 }, pb: { xs: 2.5, sm: 3 } }}>
+          {/* Header */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 3 }}>
+            <Box>
+              <Typography
+                variant="h5"
                 sx={{
-                  fontWeight: 600,
-                  color: "text.secondary",
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700,
+                  fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                  color: isDark ? "#f0f6ff" : "#0f172a",
+                  lineHeight: 1.2,
                 }}
               >
-                Select Team Rank
-              </InputLabel>
-              <Select
-                labelId="rank-select-label"
-                id="rank-select"
-                value={rank}
-                label="Select Team Rank"
-                onChange={handleRankChange}
-                sx={{
-                  borderRadius: "12px",
-                  fontWeight: 600,
-                  background:
-                    mode === "dark"
-                      ? "rgba(17, 17, 27, 0.6)"
-                      : "rgba(255, 255, 255, 0.9)",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor:
-                      mode === "dark"
-                        ? "rgba(245, 158, 11, 0.3)"
-                        : "rgba(245, 158, 11, 0.2)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor:
-                      mode === "dark"
-                        ? "rgba(245, 158, 11, 0.5)"
-                        : "rgba(245, 158, 11, 0.4)",
-                  },
-                }}
-              >
-                <MenuItem value={5}>⭐⭐⭐⭐⭐ (5 Stars)</MenuItem>
-                <MenuItem value={4}>⭐⭐⭐⭐ (4 Stars)</MenuItem>
-                <MenuItem value={3}>⭐⭐⭐ (3 Stars)</MenuItem>
-                <MenuItem value={2}>⭐⭐ (2 Stars)</MenuItem>
-                <MenuItem value={1}>⭐ (1 Star)</MenuItem>
-                <MenuItem value={"all"}>All Ranks</MenuItem>
-              </Select>
-            </FormControl>
+                🎯 Draw Fixtures
+              </Typography>
+              <Typography variant="caption" sx={{ color: isDark ? "#64748b" : "#9ca3af", fontSize: "0.8rem" }}>
+                Filter by club rating, then draw random matchups
+              </Typography>
+            </Box>
 
+            {/* Match History button */}
             <Button
-              variant="contained"
-              size="large"
-              startIcon={<AutoAwesomeIcon />}
-              endIcon={isGenerating ? null : <ShuffleIcon />}
-              onClick={handleShuffle}
-              disabled={isGenerating}
+              size="small"
+              variant="outlined"
+              startIcon={<HistoryIcon sx={{ fontSize: "16px !important" }} />}
+              onClick={() => setShowHistory(true)}
               sx={{
-                borderRadius: "12px",
-                px: { xs: 3, sm: 4 },
-                py: 1.5,
-                fontWeight: 700,
-                fontSize: { xs: "0.95rem", sm: "1rem" },
-                width: { xs: "100%", sm: "auto" },
-                background:
-                  mode === "dark"
-                    ? "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
-                    : "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)",
-                boxShadow: "0 8px 24px rgba(245, 158, 11, 0.4)",
-                minWidth: { sm: 200 },
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                "&:hover:not(:disabled)": {
-                  boxShadow: "0 12px 32px rgba(245, 158, 11, 0.5)",
-                  transform: "translateY(-3px) scale(1.02)",
-                },
-                "&:disabled": {
-                  opacity: 0.6,
-                },
+                borderRadius: "8px",
+                fontSize: "0.8rem",
+                py: 0.75,
+                flexShrink: 0,
+                ml: 1,
+                color: isDark ? "#60a5fa" : "#3b82f6",
+                borderColor: isDark ? "rgba(96,165,250,0.35)" : "rgba(59,130,246,0.3)",
+                "&:hover": { bgcolor: isDark ? "rgba(96,165,250,0.08)" : "rgba(59,130,246,0.06)" },
               }}
             >
-              {isGenerating ? "Generating..." : "Generate Pairs"}
+              History
             </Button>
           </Box>
 
-          {randomPairs.length === 0 && (
-            <Fade in={randomPairs.length === 0} timeout={400}>
-              <Box
-                sx={{
-                  py: 10,
-                  textAlign: "center",
-                  borderRadius: "1.5rem",
-                  background:
-                    mode === "dark"
-                      ? "rgba(245, 158, 11, 0.05)"
-                      : "rgba(245, 158, 11, 0.03)",
-                  border: `2px dashed ${
-                    mode === "dark"
-                      ? "rgba(245, 158, 11, 0.2)"
-                      : "rgba(245, 158, 11, 0.15)"
-                  }`,
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    mb: 1,
-                    fontSize: { xs: "1rem", sm: "1.15rem" },
-                    fontWeight: 600,
-                    opacity: 0.7,
-                  }}
-                >
-                  🎲 Ready to Create Magic?
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", opacity: 0.8 }}
-                >
-                  Select your desired team rank and hit "Generate Pairs" to
-                  create epic matchups
-                </Typography>
-              </Box>
-            </Fade>
-          )}
+          {/* Rating filter */}
+          <FormControl fullWidth sx={{ mb: 2.5 }}>
+            <InputLabel
+              sx={{
+                fontFamily: "'Barlow', sans-serif",
+                fontWeight: 500,
+                color: isDark ? "#64748b" : "#9ca3af",
+                "&.Mui-focused": { color: isDark ? "#22c55e" : "#16a34a" },
+              }}
+            >
+              Club star rating
+            </InputLabel>
+            <Select
+              value={rank}
+              label="Club star rating"
+              onChange={(e) => setRank(e.target.value)}
+              sx={{
+                borderRadius: "10px",
+                fontFamily: "'Barlow', sans-serif",
+                fontWeight: 500,
+                color: isDark ? "#f0f6ff" : "#0f172a",
+                bgcolor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.01)",
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)" },
+                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: isDark ? "rgba(34,197,94,0.4)" : "rgba(22,163,74,0.35)" },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: isDark ? "#22c55e" : "#16a34a" },
+              }}
+            >
+              <MenuItem value={5}>⭐⭐⭐⭐⭐ — 5 Stars</MenuItem>
+              <MenuItem value={4}>⭐⭐⭐⭐ — 4 Stars</MenuItem>
+              <MenuItem value={3}>⭐⭐⭐ — 3 Stars</MenuItem>
+              <MenuItem value={2}>⭐⭐ — 2 Stars</MenuItem>
+              <MenuItem value={1}>⭐ — 1 Star</MenuItem>
+              <MenuItem value="all">All ratings</MenuItem>
+            </Select>
+          </FormControl>
 
-          {(hasPairs || isGenerating) && (
-            <Box ref={pairsSectionRef}>
-              <PairsSection
-                randomPairs={randomPairs}
-                mode={mode}
-                disableAnimation
-                isGenerating={isGenerating}
-              />
+          {/* Draw button */}
+          <Button
+            fullWidth
+            variant="contained"
+            size="large"
+            startIcon={<SportsSoccerIcon />}
+            onClick={draw}
+            disabled={isDrawing}
+            sx={{
+              borderRadius: "12px",
+              py: { xs: 1.8, sm: 2 },
+              fontSize: { xs: "1.1rem", sm: "1.2rem" },
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 800,
+              letterSpacing: "0.04em",
+              bgcolor: isDark ? "#22c55e" : "#16a34a",
+              color: "#fff",
+              transition: "all 0.25s ease",
+              "&:hover:not(:disabled)": {
+                bgcolor: isDark ? "#16a34a" : "#15803d",
+                transform: "translateY(-2px)",
+                boxShadow: isDark ? "0 8px 24px rgba(34,197,94,0.35)" : "0 8px 24px rgba(22,163,74,0.3)",
+              },
+              "&:disabled": { opacity: 0.55 },
+            }}
+          >
+            {isDrawing ? "Drawing fixtures..." : "Draw Fixtures"}
+          </Button>
+
+          {/* Empty state */}
+          {!hasDrawn && !isDrawing && (
+            <Box
+              sx={{
+                mt: 3, py: 5, textAlign: "center",
+                borderRadius: "10px",
+                border: `1.5px dashed ${isDark ? "rgba(34,197,94,0.18)" : "rgba(22,163,74,0.15)"}`,
+              }}
+            >
+              <Typography sx={{ fontSize: "2rem", mb: 1, lineHeight: 1 }}>🏟️</Typography>
+              <Typography sx={{
+                fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: "1rem",
+                color: isDark ? "#64748b" : "#9ca3af", mb: 0.5,
+              }}>
+                No fixtures drawn yet
+              </Typography>
+              <Typography variant="caption" sx={{ color: isDark ? "#475569" : "#b0b8c4" }}>
+                Add your players and clubs, then draw fixtures above
+              </Typography>
             </Box>
           )}
-        </CardContent>
-      </Card>
-    </Fade>
+        </Box>
+
+        {/* Fixtures list */}
+        {(hasDrawn || isDrawing) && (
+          <Box ref={pairsRef}>
+            <PairsSection
+              matches={matches}
+              scores={scores}
+              isDrawing={isDrawing}
+              mode={mode}
+              onMatchClick={(match) => setScoreModal({ open: true, matchId: match.id })}
+            />
+          </Box>
+        )}
+      </Box>
+
+      {/* Dialogs */}
+      <SaveResultsDialog
+        open={showSaveDialog}
+        mode={mode}
+        onSave={handleSaveAndDraw}
+        onSkip={executeDraw}
+        onCancel={() => setShowSaveDialog(false)}
+      />
+
+      <ScoreEntryModal
+        open={scoreModal.open}
+        onClose={() => setScoreModal({ open: false, matchId: null })}
+        match={activeMatch}
+        scores={scores}
+        onSave={handleScoreSave}
+        allMatches={matches}
+        mode={mode}
+      />
+
+      <MatchHistoryModal
+        open={showHistory}
+        onClose={() => setShowHistory(false)}
+        mode={mode}
+      />
+    </>
   );
 };
 
