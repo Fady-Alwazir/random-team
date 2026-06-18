@@ -1,15 +1,19 @@
 import React, { createContext, useEffect, useState } from "react";
 import { defaultPlayers, defaultTeams } from "../constans";
+import wc2026Teams from "../data/wc2026Teams.json";
 
-// Create a context
 const TeamsContext = createContext();
 
 const TeamsProvider = ({ children }) => {
-  const storedTeams = JSON.parse(localStorage.getItem("teams"));
-  const storedPlayers = JSON.parse(localStorage.getItem("players"));
+  const [teams, setTeams] = useState(() => {
+    const stored = JSON.parse(localStorage.getItem("teams")) || defaultTeams;
+    const hasWC = stored.some((t) => t.wc2026 === true);
+    return hasWC ? stored : [...stored, ...wc2026Teams];
+  });
 
-  const [teams, setTeams] = useState(storedTeams || defaultTeams);
-  const [players, setPlayers] = useState(storedPlayers || defaultPlayers);
+  const [players, setPlayers] = useState(
+    JSON.parse(localStorage.getItem("players")) || defaultPlayers
+  );
   const [selectedTeams, setSelectedTeams] = useState([]);
 
   useEffect(() => {
@@ -22,14 +26,7 @@ const TeamsProvider = ({ children }) => {
 
   return (
     <TeamsContext.Provider
-      value={{
-        teams,
-        players,
-        setTeams,
-        setPlayers,
-        selectedTeams,
-        setSelectedTeams,
-      }}
+      value={{ teams, players, setTeams, setPlayers, selectedTeams, setSelectedTeams }}
     >
       {children}
     </TeamsContext.Provider>

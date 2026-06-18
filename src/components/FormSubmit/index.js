@@ -59,7 +59,10 @@ const FormSubmit = ({ mode }) => {
   const executeDraw = () => {
     setIsDrawing(true);
     setShowSaveDialog(false);
-    const filtered = rank === "all" ? teams : teams.filter((t) => t.ranking === rank);
+    const filtered =
+      rank === "wc2026" ? teams.filter((t) => t.wc2026 === true) :
+      rank === "all"    ? teams.filter((t) => !t.wc2026) :
+                          teams.filter((t) => t.ranking === rank && !t.wc2026);
     const ts = Date.now();
 
     setTimeout(() => {
@@ -204,6 +207,7 @@ const FormSubmit = ({ mode }) => {
                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: isDark ? "#22c55e" : "#16a34a" },
               }}
             >
+              <MenuItem value="wc2026">🏆 WC 2026 — All 48 Nations</MenuItem>
               <MenuItem value={5}>⭐⭐⭐⭐⭐ — 5 Stars</MenuItem>
               <MenuItem value={4}>⭐⭐⭐⭐ — 4 Stars</MenuItem>
               <MenuItem value={3}>⭐⭐⭐ — 3 Stars</MenuItem>
