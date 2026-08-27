@@ -1,7 +1,7 @@
 {
   "name": "random-team",
   "version": "0.1.0",
-  "homepage": "https://fady-alwazir.github.io/random-team",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.13.0",
