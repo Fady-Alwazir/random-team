@@ -1,5 +1,5 @@
 import { Box, Container, ThemeProvider, IconButton, Tooltip } from "@mui/material";
-import { FormSubmit, Header, Players, Teams } from "./components";
+import { Account, FormSubmit, Header, Players, Teams } from "./components";
 import { createTheme } from "@mui/material/styles";
 import { useState, useMemo, useEffect } from "react";
 import LightModeIcon from "@mui/icons-material/LightMode";
@@ -125,6 +125,8 @@ function App() {
             {isDark ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
+
+        <Account mode={mode} />
 
         <Container
           maxWidth="md"

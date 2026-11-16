@@ -54,7 +54,7 @@ export const MatchHistoryProvider = ({ children }) => {
   const clearHistory = () => setSessions([]);
 
   return (
-    <MatchHistoryContext.Provider value={{ sessions, saveSession, clearHistory }}>
+    <MatchHistoryContext.Provider value={{ sessions, setSessions, saveSession, clearHistory }}>
       {children}
     </MatchHistoryContext.Provider>
   );
